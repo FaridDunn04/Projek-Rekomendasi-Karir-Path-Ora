@@ -1,20 +1,22 @@
-import { ColumnDefinitions, MigrationBuilder } from 'node-pg-migrate';
+"use strict";
 
-export const shorthands: ColumnDefinitions | undefined = undefined;
+exports.shorthands = undefined;
 
-export async function up(pgm: MigrationBuilder): Promise<void> {
-  pgm.createTable('categories', {
+exports.up = async function up(pgm) {
+  pgm.createExtension("pgcrypto", { ifNotExists: true });
+
+  pgm.createTable("categories", {
     code: {
-      type: 'text',
+      type: "text",
       primaryKey: true,
       notNull: true,
     },
     display_name: {
-      type: 'text',
+      type: "text",
       notNull: true,
     },
     description: {
-      type: 'text',
+      type: "text",
       notNull: false,
     },
   });
@@ -30,8 +32,8 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       ('BUSINESS-DEVELOPMENT',   'Business Development',   'Pengembangan bisnis dan penjualan'),
       ('FINANCE',                'Finance',                'Keuangan dan akuntansi')
   `);
-}
+};
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropTable('categories');
-}
+exports.down = async function down(pgm) {
+  pgm.dropTable("categories");
+};

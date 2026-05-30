@@ -1,66 +1,68 @@
-import { ColumnDefinitions, MigrationBuilder } from 'node-pg-migrate';
+"use strict";
 
-export const shorthands: ColumnDefinitions | undefined = undefined;
+exports.shorthands = undefined;
 
-export async function up(pgm: MigrationBuilder): Promise<void> {
-  pgm.createTable('analyses', {
+exports.up = async function up(pgm) {
+  pgm.createExtension("pgcrypto", { ifNotExists: true });
+
+  pgm.createTable("analyses", {
     id: {
-      type: 'uuid',
+      type: "uuid",
       primaryKey: true,
-      default: pgm.func('gen_random_uuid()'),
+      default: pgm.func("gen_random_uuid()"),
       notNull: true,
     },
     cv_id: {
-      type: 'uuid',
+      type: "uuid",
       notNull: true,
       references: '"cvs"',
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     user_id: {
-      type: 'uuid',
+      type: "uuid",
       notNull: true,
       references: '"users"',
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     // Status analisis: pending → success | failed (DATA-003)
     status: {
-      type: 'text',
+      type: "text",
       notNull: true,
-      default: 'pending',
+      default: "pending",
     },
     // Metadata utama disimpan terpisah untuk query dashboard/riwayat yang efisien (NFR-011)
     predicted_category: {
-      type: 'text',
+      type: "text",
       notNull: false,
     },
     confidence: {
-      type: 'numeric(5,4)',
+      type: "numeric(5,4)",
       notNull: false,
     },
     // Payload penuh AI disimpan sebagai JSONB agar fleksibel terhadap perubahan model (DATA-005, NFR-018)
     result: {
-      type: 'jsonb',
+      type: "jsonb",
       notNull: false,
     },
     analyzed_at: {
-      type: 'timestamptz',
+      type: "timestamptz",
       notNull: false,
     },
     created_at: {
-      type: 'timestamptz',
+      type: "timestamptz",
       notNull: true,
-      default: pgm.func('NOW()'),
+      default: pgm.func("NOW()"),
     },
   });
 
   // CHECK constraint: status hanya boleh 'pending', 'success', atau 'failed' (DATA-003)
   pgm.addConstraint(
-    'analyses',
-    'analyses_status_check',
+    "analyses",
+    "analyses_status_check",
     `CHECK (status IN ('pending', 'success', 'failed'))`,
   );
-}
+};
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropTable('analyses');
-}
+exports.down = async function down(pgm) {
+  pgm.dropTable("analyses");
+};

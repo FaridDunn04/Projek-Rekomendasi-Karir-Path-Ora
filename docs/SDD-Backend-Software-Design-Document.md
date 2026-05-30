@@ -3,17 +3,19 @@
 > **Software Design Document — Backend API**
 > Platform End-to-End Kesiapan Kerja dengan Dashboard Strategis & Rekomendasi Jalur Karir Otomatis
 
-| Field | Value |
-|---|---|
-| **Nama Produk** | Path`Ora |
-| **Komponen** | Backend API |
-| **Versi Dokumen** | 1.0 |
-| **Tanggal** | 30 Mei 2026 |
-| **Status** | Draft |
-| **Stack Teknologi** | Node.js + Express + TypeScript + Zod + PostgreSQL |
-| **Dokumen Acuan** | PRD Path`Ora v1.2, SRS Path`Ora v1.0, SDD Frontend v1.0, API Contract (`docs/contract-api-Ai.json`) |
-| **Lingkup** | Desain teknis Backend RESTful API untuk fitur F1–F7 (F8 Dashboard Admin dikecualikan) |
-| **Repository Backend** | `pathora-backend/` |
+| Field                  | Value                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| **Nama Produk**        | Path`Ora                                                                                            |
+| **Komponen**           | Backend API                                                                                         |
+| **Versi Dokumen**      | 1.1                                                                                                 |
+| **Tanggal**            | 30 Mei 2026                                                                                         |
+| **Status**             | Draft                                                                                               |
+| **Stack Teknologi**    | Node.js + Express + TypeScript + Zod + PostgreSQL                                                   |
+| **Dokumen Acuan**      | PRD Path`Ora v1.2, SRS Path`Ora v1.0, SDD Frontend v1.0, API Contract (`docs/contract-api-Ai.json`) |
+| **Lingkup**            | Desain teknis Backend RESTful API untuk fitur F1–F7 (F8 Dashboard Admin dikecualikan)               |
+| **Repository Backend** | `pathora-backend/`                                                                                  |
+
+> **Changelog v1.1** — **Ekstraksi teks CV dipindahkan ke sisi layanan AI.** Backend tidak lagi mengekstrak teks dari berkas PDF/DOCX (`pdf-parse`/`mammoth` dihapus dari dependency dan modul `utils/extract-text.ts` dihapus). Untuk unggahan berkas, backend hanya menyimpan & meneruskan berkas mentah (`file_data` + `file_mime`) ke layanan AI melalui AI Gateway; layanan AI yang melakukan parsing/ekstraksi. Akibatnya: (1) kontrak `AiGatewayAdapter.analyze()` menerima sumber CV (teks **atau** berkas), bukan hanya `rawText`; (2) tabel `cvs` menambah kolom `file_name`, `file_mime`, `file_data` (bytea) dan `raw_text` menjadi nullable; (3) `upload.ts` tidak lagi memvalidasi/membatasi parsing, hanya MIME & ukuran; (4) FR-009/VAL-004 disesuaikan.
 
 ---
 
@@ -30,6 +32,7 @@
 9. [Deployment & Konfigurasi Environment](#bab-9--deployment--konfigurasi-environment)
 10. [Traceability Matrix SDD ↔ SRS](#bab-10--traceability-matrix-sdd--srs)
 11. [Keputusan Desain & Alternatif yang Dipertimbangkan](#bab-11--keputusan-desain--alternatif-yang-dipertimbangkan)
+
 - [Lampiran A — Daftar File & Tanggung Jawab](#lampiran-a--daftar-file--tanggung-jawab)
 - [Lampiran B — Dependency NPM](#lampiran-b--dependency-npm)
 
@@ -63,26 +66,26 @@ Dokumen ini juga menjaga keselarasan dengan **SDD Frontend v1.0**: bentuk respon
 
 ### 1.3 Definisi & Singkatan Teknis
 
-| Istilah | Penjelasan |
-|---|---|
-| **Use Case (Layer)** | Lapisan yang memuat *business logic* dan orkestrasi alur sebuah aksi; satu file = satu aksi (mis. `register.use-case.ts`). |
-| **Controller** | Komponen yang menerima `req`, memanggil use-case, dan mengirim `res`; tidak memuat business logic. |
-| **Repository** | Komponen akses data; satu-satunya lapisan yang mengeksekusi query SQL ke PostgreSQL. |
-| **DTO (Data Transfer Object)** | Tipe/struktur data untuk memindahkan data antarlapisan (mis. `CreateUserDto`), bukan entitas DB mentah. |
-| **Adapter Pattern** | Pola yang memisahkan kontrak (`interface`) dari implementasi konkret; dipakai pada AI Gateway. |
-| **Factory Pattern** | Pola pembuatan objek yang memilih implementasi saat runtime (mis. pilih mock vs HTTP berdasarkan env). |
-| **JSONB** | Tipe data biner JSON pada PostgreSQL; mendukung pengindeksan GIN dan query ke dalam struktur JSON. |
-| **Pool** | *Connection pool* PostgreSQL (`pg.Pool`) yang menggunakan ulang koneksi DB untuk efisiensi. |
-| **Middleware chain** | Rangkaian fungsi Express yang dieksekusi berurutan sebelum handler akhir. |
-| **Guard** | Middleware otentikasi/otorisasi (di sini: `auth.ts` yang memverifikasi JWT). |
-| **Mock Adapter** | Implementasi AI Gateway yang mengembalikan payload hardcoded sesuai kontrak, tanpa memanggil layanan nyata. |
-| **HTTP Adapter** | Implementasi AI Gateway yang memanggil layanan AI nyata via HTTP (axios). |
-| **Graceful degradation** | Kemampuan sistem tetap berjalan (tidak crash) saat dependensi (AI) gagal, dengan fallback. |
+| Istilah                          | Penjelasan                                                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Use Case (Layer)**             | Lapisan yang memuat _business logic_ dan orkestrasi alur sebuah aksi; satu file = satu aksi (mis. `register.use-case.ts`).              |
+| **Controller**                   | Komponen yang menerima `req`, memanggil use-case, dan mengirim `res`; tidak memuat business logic.                                      |
+| **Repository**                   | Komponen akses data; satu-satunya lapisan yang mengeksekusi query SQL ke PostgreSQL.                                                    |
+| **DTO (Data Transfer Object)**   | Tipe/struktur data untuk memindahkan data antarlapisan (mis. `CreateUserDto`), bukan entitas DB mentah.                                 |
+| **Adapter Pattern**              | Pola yang memisahkan kontrak (`interface`) dari implementasi konkret; dipakai pada AI Gateway.                                          |
+| **Factory Pattern**              | Pola pembuatan objek yang memilih implementasi saat runtime (mis. pilih mock vs HTTP berdasarkan env).                                  |
+| **JSONB**                        | Tipe data biner JSON pada PostgreSQL; mendukung pengindeksan GIN dan query ke dalam struktur JSON.                                      |
+| **Pool**                         | _Connection pool_ PostgreSQL (`pg.Pool`) yang menggunakan ulang koneksi DB untuk efisiensi.                                             |
+| **Middleware chain**             | Rangkaian fungsi Express yang dieksekusi berurutan sebelum handler akhir.                                                               |
+| **Guard**                        | Middleware otentikasi/otorisasi (di sini: `auth.ts` yang memverifikasi JWT).                                                            |
+| **Mock Adapter**                 | Implementasi AI Gateway yang mengembalikan payload hardcoded sesuai kontrak, tanpa memanggil layanan nyata.                             |
+| **HTTP Adapter**                 | Implementasi AI Gateway yang memanggil layanan AI nyata via HTTP (axios).                                                               |
+| **Graceful degradation**         | Kemampuan sistem tetap berjalan (tidak crash) saat dependensi (AI) gagal, dengan fallback.                                              |
 | **Circuit breaker** (konseptual) | Pola yang menghentikan sementara pemanggilan ke dependensi yang terus gagal; pada MVP belum diimplementasikan, dicatat sebagai evolusi. |
-| **UUID** | Universally Unique Identifier; tipe primary key seluruh entitas utama. |
-| **JWT** | JSON Web Token; mekanisme token autentikasi stateless. |
-| **bcrypt** | Algoritma hashing password berbasis Blowfish dengan salt dan cost factor. |
-| **Zod schema** | Skema validasi TypeScript-first; `.parse()`/`.safeParse()` memvalidasi dan meng-infer tipe. |
+| **UUID**                         | Universally Unique Identifier; tipe primary key seluruh entitas utama.                                                                  |
+| **JWT**                          | JSON Web Token; mekanisme token autentikasi stateless.                                                                                  |
+| **bcrypt**                       | Algoritma hashing password berbasis Blowfish dengan salt dan cost factor.                                                               |
+| **Zod schema**                   | Skema validasi TypeScript-first; `.parse()`/`.safeParse()` memvalidasi dan meng-infer tipe.                                             |
 
 ---
 
@@ -111,13 +114,13 @@ HTTP Request
 
 **Tanggung jawab tiap lapisan:**
 
-| Lapisan | Tanggung Jawab | Larangan |
-|---|---|---|
-| **Route** | Mendefinisikan path, method, dan urutan middleware. | Tidak memuat logika bisnis. |
-| **Controller** | Adaptasi HTTP ↔ domain: baca `req.body/params/query/user`, panggil use-case, bungkus respons, `next(err)`. | Tidak query DB, tidak memanggil AI gateway langsung, tidak memuat business rule. |
-| **Use-Case** | Logika bisnis & orkestrasi: validasi domain, cek kepemilikan, koordinasi repository + gateway. | Tidak menyentuh objek `req`/`res` (agar mudah di-unit-test). |
-| **Repository** | Akses data: eksekusi query parameterized, pemetaan baris → DTO/entity. | Tidak memuat business rule; tidak melempar error HTTP-spesifik selain `NotFound` opsional. |
-| **AI Gateway** | Komunikasi ke layanan AI (atau mock) sesuai kontrak. | Tidak menyentuh DB; tidak mengetahui `req`/`res`. |
+| Lapisan        | Tanggung Jawab                                                                                             | Larangan                                                                                   |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Route**      | Mendefinisikan path, method, dan urutan middleware.                                                        | Tidak memuat logika bisnis.                                                                |
+| **Controller** | Adaptasi HTTP ↔ domain: baca `req.body/params/query/user`, panggil use-case, bungkus respons, `next(err)`. | Tidak query DB, tidak memanggil AI gateway langsung, tidak memuat business rule.           |
+| **Use-Case**   | Logika bisnis & orkestrasi: validasi domain, cek kepemilikan, koordinasi repository + gateway.             | Tidak menyentuh objek `req`/`res` (agar mudah di-unit-test).                               |
+| **Repository** | Akses data: eksekusi query parameterized, pemetaan baris → DTO/entity.                                     | Tidak memuat business rule; tidak melempar error HTTP-spesifik selain `NotFound` opsional. |
+| **AI Gateway** | Komunikasi ke layanan AI (atau mock) sesuai kontrak.                                                       | Tidak menyentuh DB; tidak mengetahui `req`/`res`.                                          |
 
 Prinsip arah dependensi: **Controller → Use-Case → (Repository | AI Gateway)**. Lapisan bawah tidak pernah mengimpor lapisan atas. Hal ini memenuhi NFR-016 (kualitas & maintainability) dan NFR-012 (stateless, mudah di-scale).
 
@@ -163,7 +166,7 @@ Prinsip arah dependensi: **Controller → Use-Case → (Repository | AI Gateway)
      • src/middlewares/   → auth, error, validate, rate-limit, cors, upload
      • src/security/      → token-manager (JWT), password-manager (bcrypt)
      • src/exceptions/    → HttpException hierarchy (mapping ke status code)
-     • src/utils/         → response, pagination, extract-text, ai-schema-validator
+     • src/utils/         → response, pagination, ai-schema-validator
      • migrations/        → 001..005 SQL (schema + seed + index)
      • tests/             → unit (use-case, gateway, schema) + integration (Supertest)
 ```
@@ -184,7 +187,6 @@ Prinsip arah dependensi: **Controller → Use-Case → (Repository | AI Gateway)
 
 7. **Parameterized Queries** — Semua query SQL memakai placeholder `$1, $2, ...` dengan array parameter; tidak ada penggabungan string input mentah, mencegah SQL injection (SEC-006, NFR-007).
 
-
 ---
 
 ## BAB 3 — Desain Modul & Komponen
@@ -200,49 +202,55 @@ Memvalidasi `process.env` saat import pertama (fail-fast, prinsip 2.3.5). Bila g
 
 ```typescript
 // src/config/index.ts
-import { z } from 'zod';
+import { z } from "zod";
 
-const EnvSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().default(3000),
-  DATABASE_URL: z.string().url(),
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET minimal 32 karakter'),
-  JWT_EXPIRES_IN: z.string().default('7d'),
-  AI_BASE_URL: z.string().url().optional(),
-  AI_TIMEOUT_MS: z.coerce.number().default(30000),
-  USE_MOCK_AI: z.coerce.boolean().default(false),
-  ALLOWED_ORIGINS: z.string(), // comma-separated
-  MAX_FILE_SIZE_MB: z.coerce.number().default(5),
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
-  RATE_LIMIT_MAX: z.coerce.number().default(100),
-  LOG_LEVEL: z.string().default('info'),
-})
-.refine((c) => c.USE_MOCK_AI || !!c.AI_BASE_URL, {
-  message: 'AI_BASE_URL wajib bila USE_MOCK_AI=false',
-  path: ['AI_BASE_URL'],
-});
+const EnvSchema = z
+  .object({
+    NODE_ENV: z
+      .enum(["development", "production", "test"])
+      .default("development"),
+    PORT: z.coerce.number().default(3000),
+    DATABASE_URL: z.string().url(),
+    JWT_SECRET: z.string().min(32, "JWT_SECRET minimal 32 karakter"),
+    JWT_EXPIRES_IN: z.string().default("7d"),
+    AI_BASE_URL: z.string().url().optional(),
+    AI_TIMEOUT_MS: z.coerce.number().default(30000),
+    USE_MOCK_AI: z.coerce.boolean().default(false),
+    ALLOWED_ORIGINS: z.string(), // comma-separated
+    MAX_FILE_SIZE_MB: z.coerce.number().default(5),
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
+    RATE_LIMIT_MAX: z.coerce.number().default(100),
+    LOG_LEVEL: z.string().default("info"),
+  })
+  .refine((c) => c.USE_MOCK_AI || !!c.AI_BASE_URL, {
+    message: "AI_BASE_URL wajib bila USE_MOCK_AI=false",
+    path: ["AI_BASE_URL"],
+  });
 
 const parsed = EnvSchema.safeParse(process.env);
 if (!parsed.success) {
-  console.error('[CONFIG] Env tidak valid:', parsed.error.flatten().fieldErrors);
+  console.error(
+    "[CONFIG] Env tidak valid:",
+    parsed.error.flatten().fieldErrors,
+  );
   process.exit(1);
 }
 export const config = {
   ...parsed.data,
-  ALLOWED_ORIGINS: parsed.data.ALLOWED_ORIGINS.split(',').map((s) => s.trim()),
+  ALLOWED_ORIGINS: parsed.data.ALLOWED_ORIGINS.split(",").map((s) => s.trim()),
 };
 ```
 
 Alternatif menerima `DB_HOST/PORT/USER/PASSWORD/NAME` didukung dengan menambah field opsional dan menyusun `DATABASE_URL` bila `DATABASE_URL` tidak tersedia; pada MVP `DATABASE_URL` dijadikan sumber utama untuk kesederhanaan.
 
 **`config/database.ts` — PostgreSQL Pool:**
-Menginisialisasi `pg.Pool` dari `config.DATABASE_URL` dan mengekspor `query()` sebagai *thin wrapper* yang mencatat durasi query (logging konsisten, NFR-022).
+Menginisialisasi `pg.Pool` dari `config.DATABASE_URL` dan mengekspor `query()` sebagai _thin wrapper_ yang mencatat durasi query (logging konsisten, NFR-022).
 
 ```typescript
 // src/config/database.ts
-import { Pool, QueryResultRow } from 'pg';
-import { config } from '@/config';
-import { logger } from '@/config/logger';
+import { Pool, QueryResultRow } from "pg";
+import { config } from "@/config";
+import { logger } from "@/config/logger";
 
 export const pool = new Pool({ connectionString: config.DATABASE_URL });
 
@@ -252,7 +260,7 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
 ) {
   const start = Date.now();
   const res = await pool.query<T>(text, params);
-  logger.debug({ ms: Date.now() - start, rows: res.rowCount }, 'db.query');
+  logger.debug({ ms: Date.now() - start, rows: res.rowCount }, "db.query");
   return res;
 }
 ```
@@ -293,14 +301,18 @@ export class HttpException extends Error {
 }
 
 // src/exceptions/ai-gateway-error.ts
-export type AiErrorType = 'timeout' | 'upstream_error' | 'invalid_response';
+export type AiErrorType = "timeout" | "upstream_error" | "invalid_response";
 const STATUS_BY_TYPE: Record<AiErrorType, number> = {
   timeout: 504,
   upstream_error: 502,
   invalid_response: 422,
 };
 export class AiGatewayError extends HttpException {
-  constructor(public readonly type: AiErrorType, message?: string, details?: unknown) {
+  constructor(
+    public readonly type: AiErrorType,
+    message?: string,
+    details?: unknown,
+  ) {
     super(STATUS_BY_TYPE[type], message ?? `AI gateway ${type}`, details);
   }
 }
@@ -319,14 +331,14 @@ Signature `(req, res, next)`. Mengekstrak header `Authorization: Bearer <token>`
 // src/middlewares/auth.ts
 export function auth(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
-    return next(new AuthenticationError('Token tidak ditemukan'));
+  if (!header?.startsWith("Bearer ")) {
+    return next(new AuthenticationError("Token tidak ditemukan"));
   }
   try {
     req.user = tokenManager.verify(header.slice(7)); // { id, email }
     next();
   } catch {
-    next(new AuthenticationError('Token tidak valid atau kedaluwarsa'));
+    next(new AuthenticationError("Token tidak valid atau kedaluwarsa"));
   }
 }
 ```
@@ -336,12 +348,19 @@ Express error handler 4-parameter `(err, req, res, next)`. Bila `err instanceof 
 
 ```typescript
 // src/middlewares/error.ts
-export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(
+  err: unknown,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
   if (err instanceof HttpException) {
-    return res.status(err.statusCode).json(response.error(err.message, err.details));
+    return res
+      .status(err.statusCode)
+      .json(response.error(err.message, err.details));
   }
-  logger.error({ err, reqId: req.id }, 'unhandled.error');
-  return res.status(500).json(response.error('Terjadi kesalahan pada server'));
+  logger.error({ err, reqId: req.id }, "unhandled.error");
+  return res.status(500).json(response.error("Terjadi kesalahan pada server"));
 }
 ```
 
@@ -351,11 +370,13 @@ Factory `validate(schema, source)` mengembalikan middleware. Memanggil `schema.s
 ```typescript
 // src/middlewares/validate.ts
 export const validate =
-  (schema: ZodSchema, source: 'body' | 'params' | 'query' = 'body') =>
+  (schema: ZodSchema, source: "body" | "params" | "query" = "body") =>
   (req: Request, _res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[source]);
     if (!result.success) {
-      return next(new ClientError('Validasi gagal', result.error.flatten().fieldErrors));
+      return next(
+        new ClientError("Validasi gagal", result.error.flatten().fieldErrors),
+      );
     }
     (req as Record<string, unknown>)[source] = result.data;
     next();
@@ -369,7 +390,7 @@ Mengkonfigurasi `express-rate-limit` dengan `windowMs` & `max` dari config. Cust
 Setup `cors` dengan `origin: config.ALLOWED_ORIGINS`, `credentials: true`. Origin tak diizinkan ditolak otomatis.
 
 **`upload.ts` — Multer (FR-009, VAL-004):**
-`multer.memoryStorage()` (tidak menulis ke disk; buffer diteruskan ke `extract-text`). `fileFilter` membatasi MIME `application/pdf` dan `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (DOCX); MIME lain → `ClientError`. `limits.fileSize = config.MAX_FILE_SIZE_MB * 1024 * 1024`.
+`multer.memoryStorage()` (tidak menulis ke disk; buffer berkas mentah disimpan oleh use-case ke kolom `cvs.file_data` untuk kemudian diteruskan ke layanan AI). `fileFilter` membatasi MIME `application/pdf` dan `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (DOCX); MIME lain → `ClientError`. `limits.fileSize = config.MAX_FILE_SIZE_MB * 1024 * 1024`. **Backend tidak mem-parsing/mengekstrak isi berkas** — ekstraksi teks adalah tanggung jawab layanan AI (revisi v1.1).
 
 **Depends on:** `security/token-manager`, `exceptions/`, `utils/response`, `express-rate-limit`, `cors`, `multer`, `zod`.
 
@@ -380,7 +401,10 @@ Mengekspos objek dengan `sign(payload: TokenPayload): string` dan `verify(token:
 
 ```typescript
 // src/security/token-manager.ts
-export interface TokenPayload { id: string; email: string; }
+export interface TokenPayload {
+  id: string;
+  email: string;
+}
 
 export const tokenManager = {
   sign: (payload: TokenPayload): string =>
@@ -409,10 +433,15 @@ export const passwordManager = {
 ### 3.5 Modul `utils/`
 
 **`response.ts` (BTS-08, NFR-021):**
+
 ```typescript
 // src/utils/response.ts
 export const response = {
-  success: <T>(data: T, meta: Record<string, unknown> = {}) => ({ data, error: null, meta }),
+  success: <T>(data: T, meta: Record<string, unknown> = {}) => ({
+    data,
+    error: null,
+    meta,
+  }),
   error: (message: string, details?: unknown) => ({
     data: null,
     error: details === undefined ? { message } : { message, details },
@@ -422,30 +451,32 @@ export const response = {
 ```
 
 **`pagination.ts` (VAL-006, API-007, API-012):**
-Parse & validasi `limit` (default 10, max 100) dan `offset` (default 0, min 0) dari query; kembalikan `{ limit, offset, meta: { limit, offset } }`. Nilai non-numerik di-*clamp* ke default.
+Parse & validasi `limit` (default 10, max 100) dan `offset` (default 0, min 0) dari query; kembalikan `{ limit, offset, meta: { limit, offset } }`. Nilai non-numerik di-_clamp_ ke default.
 
-**`extract-text.ts` (FR-009):**
-`extractText(buffer: Buffer, mimeType: string): Promise<string>` — `pdf-parse` untuk PDF, `mammoth` untuk DOCX. Bila ekstraksi gagal atau hasil kosong → lempar `ClientError('Gagal mengekstrak teks dari berkas')`.
+**`extract-text.ts` — DIHAPUS (revisi v1.1):**
+Modul ini dihapus. Ekstraksi teks dari berkas PDF/DOCX **tidak lagi dilakukan backend**, melainkan oleh layanan AI. Untuk unggahan berkas, backend menyimpan berkas mentah (`file_data` + `file_mime`) dan meneruskannya ke AI Gateway saat analisis dipicu.
 
 **`ai-schema-validator.ts` (VAL-007, NFR-018, NFR-020):**
-Mendefinisikan `AiResponseSchema` (Zod) yang merepresentasikan API Contract (§10 PRD / `contract-api-Ai.json`) dan mengekspor `validateAiResponse(data)` yang melempar `AiGatewayError('invalid_response')` bila parse gagal. Schema ini ditempatkan di `services/ai-gateway/ai-response.schema.ts` dan di-*re-use* di sini sebagai single source of truth.
+Mendefinisikan `AiResponseSchema` (Zod) yang merepresentasikan API Contract (§10 PRD / `contract-api-Ai.json`) dan mengekspor `validateAiResponse(data)` yang melempar `AiGatewayError('invalid_response')` bila parse gagal. Schema ini ditempatkan di `services/ai-gateway/ai-response.schema.ts` dan di-_re-use_ di sini sebagai single source of truth.
 
 ```typescript
 // src/services/ai-gateway/ai-response.schema.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const AiResponseSchema = z.object({
   cv_id: z.string(),
   analyzed_at: z.string(),
   predicted_category: z.string(),
   confidence: z.number().min(0).max(1),
-  top_5_predictions: z.array(
-    z.object({ category: z.string(), confidence: z.number() }),
-  ).min(1),
+  top_5_predictions: z
+    .array(z.object({ category: z.string(), confidence: z.number() }))
+    .min(1),
   extracted_skills: z.array(
     z.object({
       category: z.string(),
-      matched_skills: z.array(z.object({ skill: z.string(), similarity: z.number() })),
+      matched_skills: z.array(
+        z.object({ skill: z.string(), similarity: z.number() }),
+      ),
       missing_skills: z.array(z.string()),
     }),
   ),
@@ -462,30 +493,43 @@ export type AiAnalysisResult = z.infer<typeof AiResponseSchema>;
 export function validateAiResponse(data: unknown): AiAnalysisResult {
   const parsed = AiResponseSchema.safeParse(data);
   if (!parsed.success) {
-    throw new AiGatewayError('invalid_response', 'Respons AI tidak sesuai schema',
-      parsed.error.flatten());
+    throw new AiGatewayError(
+      "invalid_response",
+      "Respons AI tidak sesuai schema",
+      parsed.error.flatten(),
+    );
   }
   return parsed.data;
 }
 ```
 
-**Depends on:** `zod`, `pdf-parse`, `mammoth`, `exceptions/`.
+**Depends on:** `zod`, `exceptions/`.
 
 ### 3.6 Modul `services/ai-gateway/`
 
 Modul paling kritis untuk resiliensi (FR-013, NFR-009). Menerapkan Adapter + Factory.
 
 **Interface (`ai-gateway.adapter.ts`):**
+
+Kontrak menerima **sumber CV** yang dapat berupa teks atau berkas. Untuk berkas, layanan AI yang melakukan ekstraksi teks (revisi v1.1).
+
 ```typescript
 // src/services/ai-gateway/ai-gateway.adapter.ts
-import { AiAnalysisResult } from './ai-response.schema';
+import { AiAnalysisResult } from "./ai-response.schema";
+
+export type CvSource =
+  | { kind: "text"; rawText: string }
+  | { kind: "file"; fileData: Buffer; fileMime: string; fileName?: string };
+
 export interface AiGatewayAdapter {
-  analyze(rawText: string, cvId: string): Promise<AiAnalysisResult>;
+  analyze(source: CvSource, cvId: string): Promise<AiAnalysisResult>;
 }
 ```
 
 **HTTP Adapter (`ai-gateway.http.ts`):**
-- `axios.post(config.AI_BASE_URL + '/analyze', { cv_id, raw_text }, { timeout: config.AI_TIMEOUT_MS })`.
+
+- Untuk `kind: 'text'` → `axios.post(AI_BASE_URL + '/analyze', { cv_id, raw_text })`.
+- Untuk `kind: 'file'` → kirim berkas mentah sebagai `multipart/form-data`; layanan AI yang mengekstrak teks (revisi v1.1).
 - Penanganan error axios:
   - `err.code === 'ECONNABORTED'` (timeout) → `AiGatewayError('timeout')` → 504 (NFR-003).
   - `err.response?.status >= 500` → `AiGatewayError('upstream_error')` → 502.
@@ -494,36 +538,59 @@ export interface AiGatewayAdapter {
 ```typescript
 // src/services/ai-gateway/ai-gateway.http.ts
 export class HttpAiGateway implements AiGatewayAdapter {
-  async analyze(rawText: string, cvId: string): Promise<AiAnalysisResult> {
+  async analyze(source: CvSource, cvId: string): Promise<AiAnalysisResult> {
     try {
-      const { data } = await axios.post(
-        `${config.AI_BASE_URL}/analyze`,
-        { cv_id: cvId, raw_text: rawText },
-        { timeout: config.AI_TIMEOUT_MS },
-      );
+      let data: unknown;
+
+      if (source.kind === "text") {
+        ({ data } = await axios.post(
+          `${config.AI_BASE_URL}/analyze`,
+          { cv_id: cvId, raw_text: source.rawText },
+          { timeout: config.AI_TIMEOUT_MS },
+        ));
+      } else {
+        // Berkas diteruskan apa adanya; AI yang mengekstrak teks (revisi v1.1)
+        const form = new FormData();
+        form.append("cv_id", cvId);
+        form.append(
+          "file",
+          new Blob([source.fileData], { type: source.fileMime }),
+          source.fileName ?? "cv",
+        );
+        ({ data } = await axios.post(`${config.AI_BASE_URL}/analyze`, form, {
+          timeout: config.AI_TIMEOUT_MS,
+        }));
+      }
+
       return validateAiResponse(data);
     } catch (err) {
       if (err instanceof AiGatewayError) throw err; // invalid_response dari validator
       if (axios.isAxiosError(err)) {
-        if (err.code === 'ECONNABORTED') throw new AiGatewayError('timeout');
-        if ((err.response?.status ?? 0) >= 500) throw new AiGatewayError('upstream_error');
+        if (err.code === "ECONNABORTED") throw new AiGatewayError("timeout");
+        if ((err.response?.status ?? 0) >= 500)
+          throw new AiGatewayError("upstream_error");
       }
-      throw new AiGatewayError('upstream_error', 'Kegagalan tak terduga pada AI gateway');
+      throw new AiGatewayError(
+        "upstream_error",
+        "Kegagalan tak terduga pada AI gateway",
+      );
     }
   }
 }
 ```
 
 **Mock Adapter (`ai-gateway.mock.ts`) (FR-015):**
-Mengembalikan payload hardcoded yang lolos `AiResponseSchema`, dengan `await sleep(200)` untuk meniru latensi. Mencakup seluruh field: `predicted_category`, `confidence`, `top_5_predictions` (5 item dengan confidence beragam termasuk di bawah & di atas 0.05), `extracted_skills` (matched + missing), `career_recommendations` (beberapa item dengan `match_score` beragam termasuk di bawah & di atas 0.3), dan `description_career_recommendations`. Data mock diselaraskan dengan `docs/contract-api-Ai.json` agar konsisten dengan ekspektasi frontend (NFR-020).
+Menerima `CvSource` (teks atau berkas) dan mengembalikan payload hardcoded yang lolos `AiResponseSchema`, dengan `await sleep(200)` untuk meniru latensi. Mencakup seluruh field: `predicted_category`, `confidence`, `top_5_predictions` (5 item dengan confidence beragam termasuk di bawah & di atas 0.05), `extracted_skills` (matched + missing), `career_recommendations` (beberapa item dengan `match_score` beragam termasuk di bawah & di atas 0.3), dan `description_career_recommendations`. Data mock diselaraskan dengan `docs/contract-api-Ai.json` agar konsisten dengan ekspektasi frontend (NFR-020).
 
 **Factory (`ai-gateway.factory.ts`) (BTS-03):**
+
 ```typescript
 // src/services/ai-gateway/ai-gateway.factory.ts
 export function createAiGateway(): AiGatewayAdapter {
   return config.USE_MOCK_AI ? new MockAiGateway() : new HttpAiGateway();
 }
 ```
+
 Dipanggil sekali saat startup; instance di-inject ke `trigger-analysis.use-case`.
 
 **Depends on:** `axios`, `config`, `utils/ai-schema-validator`, `exceptions/`.
@@ -535,23 +602,28 @@ Setiap domain mengikuti struktur: `routes/ → controllers/ → use-cases/ → r
 #### 3.7.1 Domain `auth/` (FR-001, FR-002, FR-003, FR-004; API-001, API-002)
 
 **Routes (`auth.route.ts`):**
+
 - `POST /api/v1/auth/register` → `strictLimiter` → `validate(RegisterSchema, 'body')` → `authController.register`
 - `POST /api/v1/auth/login` → `strictLimiter` → `validate(LoginSchema, 'body')` → `authController.login`
 
 **Validator (`auth.schema.ts`) — Zod (VAL-001, VAL-002):**
+
 - `RegisterSchema`: `full_name` `z.string().min(2).max(100)`, `email` `z.string().email()`, `password` `z.string().min(8).max(72)` (72 = batas byte bcrypt).
 - `LoginSchema`: `email` `z.string().email()`, `password` `z.string().min(1)`.
 
 **Controller (`auth.controller.ts`):**
+
 - `register`: `const user = await registerUseCase.execute(req.body)` → `res.status(201).json(response.success(user))`.
 - `login`: `const result = await loginUseCase.execute(req.body)` → `res.status(200).json(response.success(result))` (`{ token, user }`).
 - Semua dibungkus `try/catch` dengan `next(err)`.
 
 **Use-Cases:**
+
 - `register.use-case.ts`: (1) `authRepo.findByEmail(email)` → bila ada lempar `ConflictError('Email sudah terdaftar')` (409, FR-001); (2) `passwordManager.hash(password)`; (3) `authRepo.createUser({ full_name, email, password_hash })`; (4) return `User` **tanpa** `password_hash` (SEC-001).
 - `login.use-case.ts`: (1) `authRepo.findByEmail(email)` → bila null lempar `AuthenticationError('Email atau password salah')` (401, pesan generik, FR-002); (2) `passwordManager.compare(password, user.password_hash)` → bila false lempar `AuthenticationError` yang **sama** (tidak membocorkan field mana yang salah); (3) `tokenManager.sign({ id, email })`; (4) return `{ token, user }` (tanpa `password_hash`).
 
 **Repository (`auth.repository.ts`):**
+
 - `findByEmail(email): Promise<UserWithHash | null>` — `SELECT id, email, password_hash, full_name, created_at FROM users WHERE email=$1`.
 - `createUser(data: CreateUserDto): Promise<User>` — `INSERT ... RETURNING id, email, full_name, created_at` (kolom dieksplisitkan, tanpa `password_hash`, SEC-001/§6.2).
 
@@ -563,15 +635,18 @@ Setiap domain mengikuti struktur: `routes/ → controllers/ → use-cases/ → r
 `UpdateProfileSchema` = `z.object({ full_name: z.string().min(2).optional(), email: z.string().email().optional() }).refine(d => d.full_name !== undefined || d.email !== undefined, { message: 'Minimal satu field harus diisi' })`.
 
 **Use-Cases:**
+
 - `get-profile.use-case.ts`: `usersRepo.findById(userId)` → bila null `NotFoundError('Pengguna tidak ditemukan')` → return user.
 - `update-profile.use-case.ts`: bila `email` diubah → `usersRepo.findByEmail(email)`; bila ada & `row.id !== userId` → `ConflictError('Email sudah digunakan')` (409, FR-022/VAL-005); lalu `usersRepo.update(userId, data)` → return updated user.
 
 **Repository (`users.repository.ts`):**
+
 - `findById(id): Promise<User | null>`, `findByEmail(email): Promise<User | null>`, `update(id, data: Partial<UpdateUserDto>): Promise<User>` (UPDATE dinamis pada kolom yang ada, `RETURNING` kolom non-sensitif).
 
 #### 3.7.3 Domain `cvs/` (FR-008..FR-012; API-006..API-009, API-010, API-011)
 
 **Routes (`cvs.route.ts`):**
+
 - `POST /api/v1/cvs` → `auth` → `upload.single('file')` → `cvsController.upload` (mendukung teks via body & berkas via multipart).
 - `GET /api/v1/cvs` → `auth` → `cvsController.list`
 - `GET /api/v1/cvs/:cvId` → `auth` → `validate(CvIdParamSchema, 'params')` → `cvsController.getOne`
@@ -580,19 +655,25 @@ Setiap domain mengikuti struktur: `routes/ → controllers/ → use-cases/ → r
 - `GET /api/v1/cvs/:cvId/analysis` → `auth` → `validate(CvIdParamSchema, 'params')` → `analysesController.getLatestByCv`
 
 **Validator (`cvs.schema.ts`) (VAL-003, VAL-006):**
+
 - `UploadCvTextSchema`: `source_type: z.literal('text')`, `raw_text: z.string().min(100)`.
 - `CvIdParamSchema`: `cvId: z.string().uuid()`.
 
-**Controller:** `upload` mendeteksi mode — bila `req.file` ada → `uploadCvFileUseCase.execute({ userId, buffer, mimeType })`; selain itu validasi body dengan `UploadCvTextSchema` lalu `uploadCvTextUseCase.execute({ userId, raw_text })`. Mengembalikan 201 `response.success({ cv_id, ... })`.
+**Controller:** `upload` mendeteksi mode — bila `req.file` ada → `uploadCvFileUseCase.execute({ userId, buffer, mimeType, fileName })`; selain itu validasi body dengan `UploadCvTextSchema` lalu `uploadCvTextUseCase.execute({ userId, raw_text })`. Mengembalikan 201 `response.success({ cv_id, ... })`.
 
 **Use-Cases:**
+
 - `upload-cv-text.use-case.ts`: validasi panjang `raw_text` (≥100) → `cvsRepo.create({ user_id, source_type: 'text', raw_text })` → return CV.
-- `upload-cv-file.use-case.ts`: `extractText(buffer, mimeType)` → bila hasil < 100 karakter `ClientError('Teks hasil ekstraksi terlalu pendek, gunakan input teks')` (VAL-004 fallback) → `cvsRepo.create({ user_id, source_type: 'file', raw_text: extracted })` → return CV.
+- `upload-cv-file.use-case.ts`: **tidak mengekstrak teks** (revisi v1.1). Berkas mentah disimpan apa adanya: `cvsRepo.create({ user_id, source_type: 'file', file_name, file_mime: mimeType, file_data: buffer })`. Ekstraksi teks akan dilakukan oleh layanan AI saat analisis dipicu. Validasi MIME & ukuran sudah ditangani `middlewares/upload.ts` (VAL-004).
 - `delete-cv.use-case.ts`: `cvsRepo.findById(cvId)` → null `NotFoundError`; `cv.user_id !== userId` → `AuthorizationError` (403, SEC-003) → `cvsRepo.delete(cvId)`.
-- `list-cvs.use-case.ts`: `cvsRepo.findByUser(userId, { limit, offset })` → return list + meta paginasi.
+- `list-cvs.use-case.ts`: `cvsRepo.findByUser(userId, { limit, offset })` → return list + meta paginasi (tanpa `file_data` agar ringan, NFR-011).
 
 **Repository (`cvs.repository.ts`):**
-- `create(data: CreateCvDto): Promise<Cv>`, `findById(id): Promise<Cv | null>`, `findByUser(userId, pagination): Promise<Cv[]>` (`WHERE user_id=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`), `delete(id): Promise<void>`.
+
+- `create(data: CreateCvDto): Promise<Cv>` — kolom bergantung `source_type`: untuk `text` mengisi `raw_text`; untuk `file` mengisi `file_name, file_mime, file_data`.
+- `findById(id): Promise<Cv | null>` (menyertakan `file_data` untuk diteruskan ke AI saat analyze).
+- `findByUser(userId, pagination): Promise<Cv[]>` (`SELECT` kolom ringkas **tanpa** `file_data`/`raw_text`; `WHERE user_id=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`).
+- `delete(id): Promise<void>`.
 
 #### 3.7.4 Domain `analyses/` (FR-013, FR-014, FR-015; API-010..API-013)
 
@@ -606,7 +687,12 @@ trigger-analysis.use-case.ts (input: { userId, cvId })
 2. analysis = analysesRepo.create({ cv_id, user_id, status: 'pending' })   (DATA-003, §11)
    → analysisId = analysis.id
 3. try:
-   a. result = await aiGateway.analyze(cv.raw_text, cvId)
+   a. // Bangun CvSource sesuai source_type (revisi v1.1)
+      source = cv.source_type === 'text'
+        ? { kind: 'text', rawText: cv.raw_text }
+        : { kind: 'file', fileData: cv.file_data,
+            fileMime: cv.file_mime, fileName: cv.file_name }
+      result = await aiGateway.analyze(source, cvId)  // AI yang mengekstrak teks utk file
         • AiGatewayError('timeout')          → (lihat catch) → 504 (NFR-003)
         • AiGatewayError('upstream_error')   → (lihat catch) → 502
         • AiGatewayError('invalid_response') → (lihat catch) → 422 (VAL-007)
@@ -629,6 +715,7 @@ trigger-analysis.use-case.ts (input: { userId, cvId })
 `list-analyses.use-case.ts`: `analysesRepo.findByUser(userId, pagination)` → return summary `{ id, cv_id, status, predicted_category, confidence, analyzed_at, created_at }` (tanpa `result` penuh, efisiensi — NFR-011).
 
 **Repository (`analyses.repository.ts`):**
+
 - `create(data: CreateAnalysisDto): Promise<Analysis>` (status default `pending`).
 - `update(id, data: Partial<UpdateAnalysisDto>): Promise<Analysis>` (UPDATE dinamis: status/predicted_category/confidence/result/analyzed_at).
 - `findById(id): Promise<Analysis | null>` (include full `result` JSONB).
@@ -642,6 +729,7 @@ trigger-analysis.use-case.ts (input: { userId, cvId })
 **Use-Case (`get-dashboard.use-case.ts`):** Menjalankan paralel `Promise.all([ getLastAnalysis(userId), getRecentHistory(userId, 5) ])` → return `{ lastAnalysis: a | null, recentHistory: b }` (FR-005 empty state ditangani FE bila `lastAnalysis === null`).
 
 **Repository (`dashboard.repository.ts`):**
+
 - `getLastAnalysis(userId): Promise<AnalysisSummary | null>` — `SELECT id, predicted_category, confidence, analyzed_at FROM analyses WHERE user_id=$1 AND status='success' ORDER BY analyzed_at DESC LIMIT 1`.
 - `getRecentHistory(userId, limit): Promise<AnalysisSummary[]>` — JOIN `analyses a` + `cvs c` `ON a.cv_id=c.id WHERE a.user_id=$1 ORDER BY a.created_at DESC LIMIT $2`.
 
@@ -658,7 +746,6 @@ trigger-analysis.use-case.ts (input: { userId, cvId })
 **Route:** `GET /api/v1/health` — tanpa auth.
 
 **Controller (`health.controller.ts`):** Eksekusi `SELECT 1`. Bila sukses → 200 `{ status: 'ok', timestamp, db: 'ok' }`. Bila gagal → 503 `{ status: 'degraded', db: 'error' }` (NFR-010, NFR-022). Catatan: health menggunakan body ringkas dan boleh tidak dibungkus `{data,error,meta}` agar mudah dibaca probe platform; namun pada implementasi tetap dibungkus `response.success(...)` untuk konsistensi.
-
 
 ---
 
@@ -681,13 +768,21 @@ CREATE TABLE users (
 
 ```sql
 -- migrations/002_create_cvs.sql
+-- Revisi v1.1: backend tidak mengekstrak teks; berkas disimpan & diteruskan ke AI.
 CREATE TABLE cvs (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   source_type TEXT NOT NULL CHECK (source_type IN ('text', 'file')),
-  raw_text    TEXT NOT NULL,
-  file_url    TEXT,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  raw_text    TEXT,            -- diisi hanya untuk source_type='text'
+  file_name   TEXT,            -- nama asli berkas (source_type='file')
+  file_mime   TEXT,            -- MIME berkas (application/pdf | DOCX)
+  file_data   BYTEA,           -- konten berkas mentah, diteruskan ke AI utk diekstraksi
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- Konsistensi sumber: 'text' wajib raw_text; 'file' wajib file_data + file_mime
+  CONSTRAINT cvs_source_consistency_check CHECK (
+    (source_type = 'text' AND raw_text IS NOT NULL) OR
+    (source_type = 'file' AND file_data IS NOT NULL AND file_mime IS NOT NULL)
+  )
 );
 ```
 
@@ -779,44 +874,45 @@ Kolom `analyses.result` bertipe **JSONB** (DATA-005, NFR-018):
 - **Auth header:** `Authorization: Bearer <jwt_token>` untuk endpoint privat.
 - **Error code mapping** (dikelola `middlewares/error.ts`):
 
-| Exception | HTTP Status |
-|---|---|
-| `AuthenticationError` | 401 |
-| `AuthorizationError` | 403 |
-| `NotFoundError` | 404 |
-| `ConflictError` | 409 |
-| `ClientError` / `InvariantError` | 422 |
-| `AiGatewayError('upstream_error')` | 502 |
-| `AiGatewayError('timeout')` | 504 |
-| `AiGatewayError('invalid_response')` | 422 |
-| Rate limit terlampaui | 429 |
-| Error tak dikenal | 500 |
+| Exception                            | HTTP Status |
+| ------------------------------------ | ----------- |
+| `AuthenticationError`                | 401         |
+| `AuthorizationError`                 | 403         |
+| `NotFoundError`                      | 404         |
+| `ConflictError`                      | 409         |
+| `ClientError` / `InvariantError`     | 422         |
+| `AiGatewayError('upstream_error')`   | 502         |
+| `AiGatewayError('timeout')`          | 504         |
+| `AiGatewayError('invalid_response')` | 422         |
+| Rate limit terlampaui                | 429         |
+| Error tak dikenal                    | 500         |
 
 ### 5.2 Tabel Endpoint
 
 Selaras API-001 s/d API-015 (SRS §6) dan PRD §9. Endpoint admin (`/dashboard/summary`) dikecualikan (F8 di luar scope).
 
-| Method | Path | Auth | Request | Response 2xx | Error | Middleware Chain |
-|---|---|---|---|---|---|---|
-| POST | `/auth/register` | ❌ | body: full_name, email, password | 201 `{ user }` | 422, 409 | strictLimiter → validate(body) |
-| POST | `/auth/login` | ❌ | body: email, password | 200 `{ token, user }` | 422, 401 | strictLimiter → validate(body) |
-| GET | `/users/me` | ✅ | — | 200 `{ user }` | 401 | auth |
-| PATCH | `/users/me` | ✅ | body: full_name?, email? | 200 `{ user }` | 401, 409, 422 | auth → validate(body) |
-| GET | `/dashboard/me` | ✅ | — | 200 `{ lastAnalysis, recentHistory }` | 401 | auth |
-| POST | `/cvs` | ✅ | body teks / multipart file | 201 `{ cv_id, ... }` | 401, 422, 413 | auth → upload.single('file') |
-| GET | `/cvs` | ✅ | query: limit?, offset? | 200 `Cv[]` + meta | 401 | auth |
-| GET | `/cvs/:cvId` | ✅ | param: cvId (uuid) | 200 `Cv` | 401, 403, 404 | auth → validate(params) |
-| DELETE | `/cvs/:cvId` | ✅ | param: cvId | 200/204 | 401, 403, 404 | auth → validate(params) |
-| POST | `/cvs/:cvId/analyze` | ✅ | param: cvId | 200 `Analysis` (payload kontrak) | 401, 403, 404, 422, 502, 504 | auth → strictLimiter → validate(params) |
-| GET | `/cvs/:cvId/analysis` | ✅ | param: cvId | 200 `Analysis` (terbaru) | 401, 403, 404 | auth → validate(params) |
-| GET | `/analyses` | ✅ | query: limit?, offset? | 200 `AnalysisSummary[]` + meta | 401 | auth |
-| GET | `/analyses/:analysisId` | ✅ | param: analysisId (uuid) | 200 `Analysis` (full, terfilter) | 401, 403, 404 | auth → validate(params) |
-| GET | `/categories` | ❌ | — | 200 `Category[]` | 500 | (cache in-memory) |
-| GET | `/health` | ❌ | — | 200 `{ status, db }` | 503 | — |
+| Method | Path                    | Auth | Request                          | Response 2xx                          | Error                        | Middleware Chain                        |
+| ------ | ----------------------- | ---- | -------------------------------- | ------------------------------------- | ---------------------------- | --------------------------------------- |
+| POST   | `/auth/register`        | ❌   | body: full_name, email, password | 201 `{ user }`                        | 422, 409                     | strictLimiter → validate(body)          |
+| POST   | `/auth/login`           | ❌   | body: email, password            | 200 `{ token, user }`                 | 422, 401                     | strictLimiter → validate(body)          |
+| GET    | `/users/me`             | ✅   | —                                | 200 `{ user }`                        | 401                          | auth                                    |
+| PATCH  | `/users/me`             | ✅   | body: full_name?, email?         | 200 `{ user }`                        | 401, 409, 422                | auth → validate(body)                   |
+| GET    | `/dashboard/me`         | ✅   | —                                | 200 `{ lastAnalysis, recentHistory }` | 401                          | auth                                    |
+| POST   | `/cvs`                  | ✅   | body teks / multipart file       | 201 `{ cv_id, ... }`                  | 401, 422, 413                | auth → upload.single('file')            |
+| GET    | `/cvs`                  | ✅   | query: limit?, offset?           | 200 `Cv[]` + meta                     | 401                          | auth                                    |
+| GET    | `/cvs/:cvId`            | ✅   | param: cvId (uuid)               | 200 `Cv`                              | 401, 403, 404                | auth → validate(params)                 |
+| DELETE | `/cvs/:cvId`            | ✅   | param: cvId                      | 200/204                               | 401, 403, 404                | auth → validate(params)                 |
+| POST   | `/cvs/:cvId/analyze`    | ✅   | param: cvId                      | 200 `Analysis` (payload kontrak)      | 401, 403, 404, 422, 502, 504 | auth → strictLimiter → validate(params) |
+| GET    | `/cvs/:cvId/analysis`   | ✅   | param: cvId                      | 200 `Analysis` (terbaru)              | 401, 403, 404                | auth → validate(params)                 |
+| GET    | `/analyses`             | ✅   | query: limit?, offset?           | 200 `AnalysisSummary[]` + meta        | 401                          | auth                                    |
+| GET    | `/analyses/:analysisId` | ✅   | param: analysisId (uuid)         | 200 `Analysis` (full, terfilter)      | 401, 403, 404                | auth → validate(params)                 |
+| GET    | `/categories`           | ❌   | —                                | 200 `Category[]`                      | 500                          | (cache in-memory)                       |
+| GET    | `/health`               | ❌   | —                                | 200 `{ status, db }`                  | 503                          | —                                       |
 
 ### 5.3 Contoh Response
 
 **`POST /auth/register` — sukses (201):**
+
 ```json
 {
   "data": {
@@ -831,6 +927,7 @@ Selaras API-001 s/d API-015 (SRS §6) dan PRD §9. Endpoint admin (`/dashboard/s
 ```
 
 **`POST /auth/login` — sukses (200):**
+
 ```json
 {
   "data": {
@@ -848,6 +945,7 @@ Selaras API-001 s/d API-015 (SRS §6) dan PRD §9. Endpoint admin (`/dashboard/s
 ```
 
 **`POST /cvs/:cvId/analyze` — sukses (200), payload sesuai API Contract §10:**
+
 ```json
 {
   "data": {
@@ -881,6 +979,7 @@ Selaras API-001 s/d API-015 (SRS §6) dan PRD §9. Endpoint admin (`/dashboard/s
 ```
 
 **`POST /cvs/:cvId/analyze` — gagal timeout (504):**
+
 ```json
 {
   "data": null,
@@ -890,6 +989,7 @@ Selaras API-001 s/d API-015 (SRS §6) dan PRD §9. Endpoint admin (`/dashboard/s
 ```
 
 **`GET /dashboard/me` — sukses (200), dengan analisis sebelumnya:**
+
 ```json
 {
   "data": {
@@ -915,6 +1015,7 @@ Selaras API-001 s/d API-015 (SRS §6) dan PRD §9. Endpoint admin (`/dashboard/s
 ```
 
 **`GET /dashboard/me` — sukses (200), tanpa analisis sebelumnya (empty state, FR-005):**
+
 ```json
 {
   "data": { "lastAnalysis": null, "recentHistory": [] },
@@ -933,7 +1034,6 @@ Karena payload AI disimpan sebagai **JSONB** utuh, aturan filtering tampilan (VA
 - Bila hasil filter kosong → kembalikan **array kosong** (bukan error); frontend menampilkan empty state (UI-013, VAL-008).
 
 > **Pembagian tanggung jawab dengan frontend:** Backend menegakkan aturan filter sebagai otoritas data (sesuai PRD §10 "BE memvalidasi, FE menampilkan"). Frontend (`utils/filter.ts`, `utils/sort.ts` pada SDD Frontend) juga menerapkan aturan yang sama sebagai lapisan pertahanan tampilan. Keduanya memakai ambang identik (0.05 dan 0.3) sehingga hasil konsisten (NFR-020).
-
 
 ---
 
@@ -986,12 +1086,12 @@ Validasi berlapis dari terluar ke terdalam:
 
 1. **Multer** (`upload.ts`) — memvalidasi tipe MIME & ukuran berkas **sebelum** body diproses (VAL-004).
 2. **Zod middleware** (`validate.ts`) — memvalidasi `body`/`params`/`query` di route level; gagal → `ClientError` 422 dengan `details` per field (VAL-001..006).
-3. **Business rule** (use-case) — validasi domain: cek duplikat email (409), cek kepemilikan (403), panjang teks hasil ekstraksi (VAL-003).
+3. **Business rule** (use-case) — validasi domain: cek duplikat email (409), cek kepemilikan (403), panjang `raw_text` untuk unggahan teks ≥100 karakter (VAL-003).
 4. **Parameterized query** (repository) — seluruh nilai input dikirim sebagai parameter `$1, $2, ...`, mencegah SQL injection (SEC-006).
 
 ### 6.6 Proteksi Komunikasi & Rahasia (SEC-009, SEC-010)
 
-- **HTTPS** di produksi untuk FE↔BE dan BE↔AI (SEC-009). Backend tidak meng-*enforce* TLS pada level aplikasi (di-terminate oleh platform/proxy), namun `AI_BASE_URL` produksi wajib `https://`.
+- **HTTPS** di produksi untuk FE↔BE dan BE↔AI (SEC-009). Backend tidak meng-_enforce_ TLS pada level aplikasi (di-terminate oleh platform/proxy), namun `AI_BASE_URL` produksi wajib `https://`.
 - **Secrets via env** (SEC-010): `JWT_SECRET`, `DATABASE_URL`, `AI_BASE_URL` hanya dari environment, tidak di-hardcode, dan tidak di-commit (lihat `.env.example` Bab 9). `config/index.ts` memastikan keberadaannya saat startup.
 
 ---
@@ -1014,6 +1114,7 @@ async register(req: Request, res: Response, next: NextFunction) {
 ```
 
 `middlewares/error.ts` membedakan **known error** (`HttpException` → gunakan `statusCode` + pesan) vs **unknown error** (`Error` lain → log penuh + 500 generik). Pola ini memastikan:
+
 - Tidak ada `try/catch` yang menelan error secara diam-diam.
 - Respons error selalu konsisten `{ data, error, meta }` (NFR-021).
 - Detail teknis (stack trace) tidak bocor ke klien (SEC), namun tercatat di log (NFR-022).
@@ -1022,18 +1123,19 @@ async register(req: Request, res: Response, next: NextFunction) {
 
 Tiga skenario kegagalan AI ditangani di `HttpAiGateway` dan diorkestrasi oleh `trigger-analysis.use-case` (status `failed` selalu dicatat sebelum melempar ulang):
 
-| Skenario | Deteksi | Status Analysis | HTTP Response | Aksi Frontend |
-|---|---|---|---|---|
-| **AI Timeout** | `axios` `ECONNABORTED` / melewati `AI_TIMEOUT_MS` | `failed` | **504** | Tampilkan pesan timeout + tombol "Coba lagi" |
-| **AI Error 5xx** | `axios` `response.status >= 500` | `failed` | **502** | Tampilkan fallback + retry |
-| **Respons Invalid** | Zod `AiResponseSchema` gagal parse | `failed` | **422** | Tampilkan "Analisis gagal" |
-| **Sukses** | Zod parse lolos | `success` | **200** | Redirect ke `/analysis/:id` |
+| Skenario            | Deteksi                                           | Status Analysis | HTTP Response | Aksi Frontend                                |
+| ------------------- | ------------------------------------------------- | --------------- | ------------- | -------------------------------------------- |
+| **AI Timeout**      | `axios` `ECONNABORTED` / melewati `AI_TIMEOUT_MS` | `failed`        | **504**       | Tampilkan pesan timeout + tombol "Coba lagi" |
+| **AI Error 5xx**    | `axios` `response.status >= 500`                  | `failed`        | **502**       | Tampilkan fallback + retry                   |
+| **Respons Invalid** | Zod `AiResponseSchema` gagal parse                | `failed`        | **422**       | Tampilkan "Analisis gagal"                   |
+| **Sukses**          | Zod parse lolos                                   | `success`       | **200**       | Redirect ke `/analysis/:id`                  |
 
-Prinsip **graceful degradation**: kegagalan AI **tidak pernah** meng-crash proses (NFR-009, BR-7). Record analisis selalu dibuat sebagai `pending` lebih dahulu (§3.7.4) sehingga kegagalan dapat ditandai `failed` dan ditelusuri. Retry dikendalikan pengguna dari frontend (memanggil ulang `POST /cvs/:cvId/analyze`); backend tidak melakukan retry otomatis pada MVP untuk menghindari beban ganda ke layanan AI. *Circuit breaker* dicatat sebagai evolusi bila volume kegagalan tinggi.
+Prinsip **graceful degradation**: kegagalan AI **tidak pernah** meng-crash proses (NFR-009, BR-7). Record analisis selalu dibuat sebagai `pending` lebih dahulu (§3.7.4) sehingga kegagalan dapat ditandai `failed` dan ditelusuri. Retry dikendalikan pengguna dari frontend (memanggil ulang `POST /cvs/:cvId/analyze`); backend tidak melakukan retry otomatis pada MVP untuk menghindari beban ganda ke layanan AI. _Circuit breaker_ dicatat sebagai evolusi bila volume kegagalan tinggi.
 
 ### 7.3 Graceful Startup & Shutdown
 
 **Startup (`server.ts`):**
+
 ```
 1. import config            → validasi env (Zod); gagal → process.exit(1)
 2. init pg.Pool             → config/database.ts
@@ -1043,22 +1145,24 @@ Prinsip **graceful degradation**: kegagalan AI **tidak pernah** meng-crash prose
 ```
 
 **Shutdown (SIGTERM / SIGINT):**
+
 ```
 1. logger.info('shutting down')
 2. server.close()           → berhenti menerima koneksi baru, tunggu in-flight selesai
 3. await pool.end()         → tutup seluruh koneksi DB
 4. process.exit(0)
 ```
+
 Penanganan sinyal memastikan tidak ada koneksi DB yang menggantung saat redeploy (NFR-010, NFR-012).
 
 ### 7.4 Logging Strategy (NFR-022)
 
 Menggunakan Pino dengan **correlation ID** per request (`req.id` via `nanoid`, dipasang sebagai middleware awal):
 
-| Level | Kapan dipakai |
-|---|---|
-| `info` | Setiap request masuk & selesai (method, path, status, durasi, `reqId`). |
-| `warn` | Validasi respons AI gagal, percobaan retry, rate limit terlampaui. |
+| Level   | Kapan dipakai                                                                       |
+| ------- | ----------------------------------------------------------------------------------- |
+| `info`  | Setiap request masuk & selesai (method, path, status, durasi, `reqId`).             |
+| `warn`  | Validasi respons AI gagal, percobaan retry, rate limit terlampaui.                  |
 | `error` | Unknown error, kegagalan query DB, `AiGatewayError` (dengan stack trace & `reqId`). |
 
 **Aturan privasi log:** **dilarang** mencatat `password`, `password_hash`, atau token JWT. `reqId` memudahkan korelasi seluruh log dalam satu request lintas lapisan.
@@ -1077,6 +1181,7 @@ Mengikuti piramida pengujian:
 ### 8.2 Test Cases Kritis
 
 **Auth:**
+
 - Register sukses → 201, response **tidak** memuat `password`/`password_hash`.
 - Register email duplikat → 409 (`ConflictError`).
 - Login kredensial valid → 200 + `token` + `user`.
@@ -1084,6 +1189,7 @@ Mengikuti piramida pengujian:
 - Akses endpoint privat tanpa token → 401.
 
 **CVs:**
+
 - Upload teks valid (≥100 karakter) → 201 + `cv_id`.
 - Upload teks < minimum → 422.
 - Hapus CV milik sendiri → 200/204.
@@ -1091,6 +1197,7 @@ Mengikuti piramida pengujian:
 - Upload berkas tipe tidak didukung → 422 (filter Multer/ClientError).
 
 **Analyses (mock AI):**
+
 - Trigger sukses → 200 + payload lengkap sesuai kontrak; status analysis `success`.
 - Trigger AI timeout → 504; status analysis `failed`.
 - Trigger AI error 5xx → 502; status analysis `failed`.
@@ -1102,38 +1209,55 @@ Mengikuti piramida pengujian:
 
 ```typescript
 // tests/unit/auth.use-case.test.ts
-import { createRegisterUseCase } from '@/services/auth/use-cases/register.use-case';
-import { ConflictError } from '@/exceptions';
+import { createRegisterUseCase } from "@/services/auth/use-cases/register.use-case";
+import { ConflictError } from "@/exceptions";
 
-describe('register.use-case', () => {
+describe("register.use-case", () => {
   const baseRepo = {
     findByEmail: jest.fn(),
     createUser: jest.fn(),
   };
-  const passwordManager = { hash: jest.fn().mockResolvedValue('hashed') };
+  const passwordManager = { hash: jest.fn().mockResolvedValue("hashed") };
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('menolak email duplikat dengan ConflictError (FR-001)', async () => {
-    baseRepo.findByEmail.mockResolvedValue({ id: 'u1', email: 'a@b.com' });
-    const useCase = createRegisterUseCase({ authRepo: baseRepo, passwordManager });
+  it("menolak email duplikat dengan ConflictError (FR-001)", async () => {
+    baseRepo.findByEmail.mockResolvedValue({ id: "u1", email: "a@b.com" });
+    const useCase = createRegisterUseCase({
+      authRepo: baseRepo,
+      passwordManager,
+    });
 
     await expect(
-      useCase.execute({ full_name: 'A', email: 'a@b.com', password: 'secret123' }),
+      useCase.execute({
+        full_name: "A",
+        email: "a@b.com",
+        password: "secret123",
+      }),
     ).rejects.toBeInstanceOf(ConflictError);
     expect(baseRepo.createUser).not.toHaveBeenCalled();
   });
 
-  it('membuat user & tidak mengembalikan password_hash (SEC-001)', async () => {
+  it("membuat user & tidak mengembalikan password_hash (SEC-001)", async () => {
     baseRepo.findByEmail.mockResolvedValue(null);
     baseRepo.createUser.mockResolvedValue({
-      id: 'u2', email: 'c@d.com', full_name: 'C', created_at: '2026-05-30T08:00:00Z',
+      id: "u2",
+      email: "c@d.com",
+      full_name: "C",
+      created_at: "2026-05-30T08:00:00Z",
     });
-    const useCase = createRegisterUseCase({ authRepo: baseRepo, passwordManager });
+    const useCase = createRegisterUseCase({
+      authRepo: baseRepo,
+      passwordManager,
+    });
 
-    const user = await useCase.execute({ full_name: 'C', email: 'c@d.com', password: 'secret123' });
-    expect(passwordManager.hash).toHaveBeenCalledWith('secret123');
-    expect(user).not.toHaveProperty('password_hash');
+    const user = await useCase.execute({
+      full_name: "C",
+      email: "c@d.com",
+      password: "secret123",
+    });
+    expect(passwordManager.hash).toHaveBeenCalledWith("secret123");
+    expect(user).not.toHaveProperty("password_hash");
   });
 });
 ```
@@ -1146,28 +1270,27 @@ describe('register.use-case', () => {
 - **`afterAll`:** tutup koneksi (`pool.end()`).
 - AI gateway selalu di-mock pada unit test (DI manual); pada integration test memakai mock adapter melalui env, sehingga seluruh alur FE/BE dapat diuji tanpa layanan AI nyata (FR-015).
 
-
 ---
 
 ## BAB 9 — Deployment & Konfigurasi Environment
 
 ### 9.1 Environment Variables
 
-| Variabel | Tipe | Wajib | Default | Deskripsi |
-|---|---|---|---|---|
-| `NODE_ENV` | string | Ya | `development` | `development` / `production` / `test` |
-| `PORT` | number | Ya | `3000` | Port HTTP server |
-| `DATABASE_URL` | string | Ya | — | Connection string PostgreSQL |
-| `JWT_SECRET` | string | Ya | — | Secret signing JWT, **min 32 karakter** |
-| `JWT_EXPIRES_IN` | string | Tidak | `7d` | Masa berlaku token JWT |
-| `AI_BASE_URL` | string | Ya* | — | Base URL layanan AI (*wajib bila `USE_MOCK_AI=false`) |
-| `AI_TIMEOUT_MS` | number | Tidak | `30000` | Timeout call ke AI (ms), NFR-003 |
-| `USE_MOCK_AI` | boolean | Tidak | `false` | Gunakan mock adapter bila `true` (FR-015) |
-| `ALLOWED_ORIGINS` | string | Ya | — | Origin CORS yang diizinkan (comma-separated) |
-| `MAX_FILE_SIZE_MB` | number | Tidak | `5` | Batas ukuran berkas upload |
-| `RATE_LIMIT_WINDOW_MS` | number | Tidak | `900000` | Window rate limit (15 menit) |
-| `RATE_LIMIT_MAX` | number | Tidak | `100` | Maksimum request per window |
-| `LOG_LEVEL` | string | Tidak | `info` | Level logging Pino |
+| Variabel               | Tipe    | Wajib | Default       | Deskripsi                                              |
+| ---------------------- | ------- | ----- | ------------- | ------------------------------------------------------ |
+| `NODE_ENV`             | string  | Ya    | `development` | `development` / `production` / `test`                  |
+| `PORT`                 | number  | Ya    | `3000`        | Port HTTP server                                       |
+| `DATABASE_URL`         | string  | Ya    | —             | Connection string PostgreSQL                           |
+| `JWT_SECRET`           | string  | Ya    | —             | Secret signing JWT, **min 32 karakter**                |
+| `JWT_EXPIRES_IN`       | string  | Tidak | `7d`          | Masa berlaku token JWT                                 |
+| `AI_BASE_URL`          | string  | Ya\*  | —             | Base URL layanan AI (\*wajib bila `USE_MOCK_AI=false`) |
+| `AI_TIMEOUT_MS`        | number  | Tidak | `30000`       | Timeout call ke AI (ms), NFR-003                       |
+| `USE_MOCK_AI`          | boolean | Tidak | `false`       | Gunakan mock adapter bila `true` (FR-015)              |
+| `ALLOWED_ORIGINS`      | string  | Ya    | —             | Origin CORS yang diizinkan (comma-separated)           |
+| `MAX_FILE_SIZE_MB`     | number  | Tidak | `5`           | Batas ukuran berkas upload                             |
+| `RATE_LIMIT_WINDOW_MS` | number  | Tidak | `900000`      | Window rate limit (15 menit)                           |
+| `RATE_LIMIT_MAX`       | number  | Tidak | `100`         | Maksimum request per window                            |
+| `LOG_LEVEL`            | string  | Tidak | `info`        | Level logging Pino                                     |
 
 Contoh `.env.example` (wajib dikomit, tanpa nilai rahasia):
 
@@ -1189,16 +1312,16 @@ LOG_LEVEL=debug
 
 ### 9.2 Scripts NPM
 
-| Script | Perintah | Kegunaan |
-|---|---|---|
-| `dev` | `ts-node-dev --respawn src/server.ts` | Hot reload pengembangan |
-| `build` | `tsc` | Kompilasi TypeScript → `dist/` |
-| `start` | `node dist/server.js` | Menjalankan build production |
-| `migrate` | `node scripts/migrate.js` | Eksekusi seluruh file SQL di `migrations/` berurutan |
-| `lint` | `eslint src --ext .ts` | Lint kode (NFR-016) |
-| `test` | `jest --runInBand` | Seluruh test (serial, untuk DB integration) |
-| `test:unit` | `jest tests/unit` | Hanya unit test |
-| `test:integration` | `jest tests/integration` | Hanya integration test |
+| Script             | Perintah                              | Kegunaan                                             |
+| ------------------ | ------------------------------------- | ---------------------------------------------------- |
+| `dev`              | `ts-node-dev --respawn src/server.ts` | Hot reload pengembangan                              |
+| `build`            | `tsc`                                 | Kompilasi TypeScript → `dist/`                       |
+| `start`            | `node dist/server.js`                 | Menjalankan build production                         |
+| `migrate`          | `node scripts/migrate.js`             | Eksekusi seluruh file SQL di `migrations/` berurutan |
+| `lint`             | `eslint src --ext .ts`                | Lint kode (NFR-016)                                  |
+| `test`             | `jest --runInBand`                    | Seluruh test (serial, untuk DB integration)          |
+| `test:unit`        | `jest tests/unit`                     | Hanya unit test                                      |
+| `test:integration` | `jest tests/integration`              | Hanya integration test                               |
 
 > **Catatan:** `--runInBand` dipakai agar integration test tidak berebut state DB (eksekusi serial).
 
@@ -1208,7 +1331,7 @@ LOG_LEVEL=debug
 - **Prasyarat:** Node.js ≥ 20, PostgreSQL ≥ 15.
 - **Build command:** `npm run build`.
 - **Start command:** `npm start`.
-- **Migration:** dijalankan sebagai *release/pre-deploy command* (`npm run migrate`) sebelum start, agar schema selalu mutakhir.
+- **Migration:** dijalankan sebagai _release/pre-deploy command_ (`npm run migrate`) sebelum start, agar schema selalu mutakhir.
 - **Health check:** `GET /api/v1/health` dijadikan probe monitoring platform (NFR-010, NFR-022).
 - **HTTPS:** di-terminate oleh platform; `ALLOWED_ORIGINS` & `AI_BASE_URL` produksi memakai `https://` (SEC-009).
 
@@ -1216,73 +1339,73 @@ LOG_LEVEL=debug
 
 ## BAB 10 — Traceability Matrix SDD ↔ SRS
 
-| ID SRS | Deskripsi | Komponen SDD |
-|---|---|---|
-| FR-001 | Registrasi pengguna | `auth/use-cases/register.use-case.ts`, `auth/repositories/auth.repository.ts`, `security/password-manager.ts` |
-| FR-002 | Login + JWT | `auth/use-cases/login.use-case.ts`, `security/token-manager.ts` |
-| FR-003 | Logout & sesi | Stateless JWT; invalidasi sisi klien (FE). Token expiry via `token-manager` |
-| FR-004 | Proteksi endpoint privat | `middlewares/auth.ts` |
-| FR-005 | Ringkasan analisis terakhir | `dashboard/use-cases/get-dashboard.use-case.ts`, `dashboard.repository.getLastAnalysis` |
-| FR-006 | CTA Upload (data jalur) | `dashboard/` (data), navigasi di FE |
-| FR-007 | Riwayat upload | `dashboard.repository.getRecentHistory`, `analyses.repository.findByUser` |
-| FR-008 | Upload CV teks | `cvs/use-cases/upload-cv-text.use-case.ts`, `cvs/validators/cvs.schema.ts` |
-| FR-009 | Upload CV file | `cvs/use-cases/upload-cv-file.use-case.ts`, `middlewares/upload.ts`, `utils/extract-text.ts` |
-| FR-010 | Validasi & loading upload | `middlewares/validate.ts`, `middlewares/upload.ts` (BE); loading state di FE |
-| FR-011 | Pemicuan analisis pasca-upload | `analyses/use-cases/trigger-analysis.use-case.ts`, `cvs.route.ts` (`POST /cvs/:cvId/analyze`) |
-| FR-012 | Daftar & hapus CV | `cvs/use-cases/list-cvs.use-case.ts`, `delete-cv.use-case.ts`, `cvs.repository.ts` |
-| FR-013 | Orkestrasi analisis & resiliensi | `analyses/use-cases/trigger-analysis.use-case.ts`, `services/ai-gateway/`, `exceptions/ai-gateway-error.ts` |
-| FR-014 | Penyimpanan hasil analisis | `analyses/repositories/analyses.repository.ts`, kolom `result` JSONB |
-| FR-015 | Mock adapter AI | `ai-gateway/ai-gateway.mock.ts`, `ai-gateway/ai-gateway.factory.ts` |
-| FR-016 | Top 5 predictions (>0.05) | `get-analysis.use-case.ts` (filter), kontrak `analyses/:id` |
-| FR-017 | Skill gap (sort by similarity) | `get-analysis.use-case.ts` (sort matched_skills desc) |
-| FR-018 | Deskripsi karir | `result.description_career_recommendations` (JSONB) |
-| FR-019 | Navigasi ke rekomendasi karir | Endpoint sama `GET /analyses/:analysisId`; navigasi di FE |
-| FR-020 | Seluruh kategori (>0.3) | `get-analysis.use-case.ts` (filter career_recommendations) |
-| FR-021 | Skill gap per kategori | `get-analysis.use-case.ts` (gabung extracted_skills, sort) |
-| FR-022 | Lihat & edit biodata | `users/use-cases/get-profile.use-case.ts`, `update-profile.use-case.ts` |
-| FR-023 | Riwayat analisis di Profile | `analyses/use-cases/list-analyses.use-case.ts`, `GET /analyses` |
-| FR-024 | Data referensi kategori | `categories/` (+ cache in-memory), `categories.repository.findAll` |
-| FR-025 | Health check | `health/health.controller.ts`, `health.route.ts` |
-| NFR-002 | Latensi endpoint non-AI | `config/database.ts` (pool), index DB; query parameterized ringan |
-| NFR-003 | Timeout endpoint analyze | `config/index.ts` (`AI_TIMEOUT_MS`), `ai-gateway/ai-gateway.http.ts` |
-| NFR-005 | Password hashing | `security/password-manager.ts` (bcrypt, saltRounds=12) |
-| NFR-006 | Autentikasi JWT | `security/token-manager.ts`, `middlewares/auth.ts` |
-| NFR-007 | Validasi input + parameterized query | `middlewares/validate.ts`, seluruh `*.repository.ts` |
-| NFR-008 | CORS + rate limiting | `middlewares/cors.ts`, `middlewares/rate-limit.ts` |
-| NFR-009 | Resiliensi kegagalan AI | `ai-gateway/ai-gateway.http.ts`, `trigger-analysis.use-case.ts` (try/catch, status failed) |
-| NFR-010 | Ketersediaan & health | `health/`, graceful startup/shutdown (`server.ts`) |
-| NFR-011 | Skalabilitas data & index | `migrations/005_add_indexes.sql` |
-| NFR-012 | Stateless API | JWT stateless; tidak ada session in-memory |
-| NFR-018 | Fleksibilitas skema hasil AI | Kolom `result` JSONB + `AiResponseSchema` (Zod) |
-| NFR-020 | Konsistensi kontrak integrasi | `ai-response.schema.ts`, mock = nyata (validator sama) |
-| NFR-021 | Response konsisten | `utils/response.ts`, `middlewares/error.ts` |
-| NFR-022 | Logging & observability | `config/logger.ts` (Pino), `reqId` correlation, `/health` |
-| SEC-001 | Hash password | `security/password-manager.ts` |
-| SEC-002 | Autentikasi JWT | `middlewares/auth.ts`, `security/token-manager.ts` |
-| SEC-003 | Otorisasi kepemilikan | Ownership check di use-case (cvs/analyses) + `WHERE user_id=$1` |
-| SEC-004 | Manajemen token | `token-manager` (expiry), logout sisi klien |
-| SEC-005 | Validasi & sanitasi input | `middlewares/validate.ts` (Zod) |
-| SEC-006 | Proteksi injeksi | Parameterized queries di semua repository |
-| SEC-007 | CORS | `middlewares/cors.ts` |
-| SEC-008 | Rate limiting | `middlewares/rate-limit.ts` (global + strict) |
-| SEC-009 | Proteksi komunikasi (HTTPS) | Deployment (`ALLOWED_ORIGINS`/`AI_BASE_URL` https) |
-| SEC-010 | Pengelolaan secrets | `config/index.ts` (env-only, fail-fast) |
-| SEC-011 | Isolasi AI dari FE | AI hanya dipanggil dari `services/ai-gateway/` di backend |
-| VAL-001 | Validasi registrasi | `auth/validators/auth.schema.ts` (`RegisterSchema`) |
-| VAL-002 | Validasi login | `auth/validators/auth.schema.ts` (`LoginSchema`) |
-| VAL-003 | Validasi upload teks | `cvs/validators/cvs.schema.ts` (`UploadCvTextSchema`, min 100) |
-| VAL-004 | Validasi upload berkas | `middlewares/upload.ts` (MIME + size) |
-| VAL-005 | Validasi edit biodata | `users/validators/users.schema.ts` (`UpdateProfileSchema`) |
-| VAL-006 | Validasi parameter & path | `CvIdParamSchema`, `utils/pagination.ts` |
-| VAL-007 | Validasi respons AI | `services/ai-gateway/ai-response.schema.ts`, `utils/ai-schema-validator.ts` |
-| VAL-008 | Aturan filtering tampilan | `get-analysis.use-case.ts` (filter/sort di use-case layer) |
-| DATA-001 | Data User | `migrations/001_create_users.sql` |
-| DATA-002 | Data CV | `migrations/002_create_cvs.sql` |
-| DATA-003 | Data Analisis | `migrations/003_create_analyses.sql`, kolom JSONB `result` |
-| DATA-004 | Data Kategori | `migrations/004_create_categories.sql` |
-| DATA-005 | Payload hasil (kontrak) | `ai-response.schema.ts`, kolom `result` |
-| DATA-006 | Integritas & relasi | FK `ON DELETE CASCADE`, index (`005`) |
-| DATA-007 | Retensi & kepemilikan | Ownership check + `WHERE user_id=$1` di repository |
+| ID SRS   | Deskripsi                            | Komponen SDD                                                                                                  |
+| -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| FR-001   | Registrasi pengguna                  | `auth/use-cases/register.use-case.ts`, `auth/repositories/auth.repository.ts`, `security/password-manager.ts` |
+| FR-002   | Login + JWT                          | `auth/use-cases/login.use-case.ts`, `security/token-manager.ts`                                               |
+| FR-003   | Logout & sesi                        | Stateless JWT; invalidasi sisi klien (FE). Token expiry via `token-manager`                                   |
+| FR-004   | Proteksi endpoint privat             | `middlewares/auth.ts`                                                                                         |
+| FR-005   | Ringkasan analisis terakhir          | `dashboard/use-cases/get-dashboard.use-case.ts`, `dashboard.repository.getLastAnalysis`                       |
+| FR-006   | CTA Upload (data jalur)              | `dashboard/` (data), navigasi di FE                                                                           |
+| FR-007   | Riwayat upload                       | `dashboard.repository.getRecentHistory`, `analyses.repository.findByUser`                                     |
+| FR-008   | Upload CV teks                       | `cvs/use-cases/upload-cv-text.use-case.ts`, `cvs/validators/cvs.schema.ts`                                    |
+| FR-009   | Upload CV file (diteruskan ke AI)    | `cvs/use-cases/upload-cv-file.use-case.ts`, `middlewares/upload.ts` (ekstraksi teks oleh AI)                  |
+| FR-010   | Validasi & loading upload            | `middlewares/validate.ts`, `middlewares/upload.ts` (BE); loading state di FE                                  |
+| FR-011   | Pemicuan analisis pasca-upload       | `analyses/use-cases/trigger-analysis.use-case.ts`, `cvs.route.ts` (`POST /cvs/:cvId/analyze`)                 |
+| FR-012   | Daftar & hapus CV                    | `cvs/use-cases/list-cvs.use-case.ts`, `delete-cv.use-case.ts`, `cvs.repository.ts`                            |
+| FR-013   | Orkestrasi analisis & resiliensi     | `analyses/use-cases/trigger-analysis.use-case.ts`, `services/ai-gateway/`, `exceptions/ai-gateway-error.ts`   |
+| FR-014   | Penyimpanan hasil analisis           | `analyses/repositories/analyses.repository.ts`, kolom `result` JSONB                                          |
+| FR-015   | Mock adapter AI                      | `ai-gateway/ai-gateway.mock.ts`, `ai-gateway/ai-gateway.factory.ts`                                           |
+| FR-016   | Top 5 predictions (>0.05)            | `get-analysis.use-case.ts` (filter), kontrak `analyses/:id`                                                   |
+| FR-017   | Skill gap (sort by similarity)       | `get-analysis.use-case.ts` (sort matched_skills desc)                                                         |
+| FR-018   | Deskripsi karir                      | `result.description_career_recommendations` (JSONB)                                                           |
+| FR-019   | Navigasi ke rekomendasi karir        | Endpoint sama `GET /analyses/:analysisId`; navigasi di FE                                                     |
+| FR-020   | Seluruh kategori (>0.3)              | `get-analysis.use-case.ts` (filter career_recommendations)                                                    |
+| FR-021   | Skill gap per kategori               | `get-analysis.use-case.ts` (gabung extracted_skills, sort)                                                    |
+| FR-022   | Lihat & edit biodata                 | `users/use-cases/get-profile.use-case.ts`, `update-profile.use-case.ts`                                       |
+| FR-023   | Riwayat analisis di Profile          | `analyses/use-cases/list-analyses.use-case.ts`, `GET /analyses`                                               |
+| FR-024   | Data referensi kategori              | `categories/` (+ cache in-memory), `categories.repository.findAll`                                            |
+| FR-025   | Health check                         | `health/health.controller.ts`, `health.route.ts`                                                              |
+| NFR-002  | Latensi endpoint non-AI              | `config/database.ts` (pool), index DB; query parameterized ringan                                             |
+| NFR-003  | Timeout endpoint analyze             | `config/index.ts` (`AI_TIMEOUT_MS`), `ai-gateway/ai-gateway.http.ts`                                          |
+| NFR-005  | Password hashing                     | `security/password-manager.ts` (bcrypt, saltRounds=12)                                                        |
+| NFR-006  | Autentikasi JWT                      | `security/token-manager.ts`, `middlewares/auth.ts`                                                            |
+| NFR-007  | Validasi input + parameterized query | `middlewares/validate.ts`, seluruh `*.repository.ts`                                                          |
+| NFR-008  | CORS + rate limiting                 | `middlewares/cors.ts`, `middlewares/rate-limit.ts`                                                            |
+| NFR-009  | Resiliensi kegagalan AI              | `ai-gateway/ai-gateway.http.ts`, `trigger-analysis.use-case.ts` (try/catch, status failed)                    |
+| NFR-010  | Ketersediaan & health                | `health/`, graceful startup/shutdown (`server.ts`)                                                            |
+| NFR-011  | Skalabilitas data & index            | `migrations/005_add_indexes.sql`                                                                              |
+| NFR-012  | Stateless API                        | JWT stateless; tidak ada session in-memory                                                                    |
+| NFR-018  | Fleksibilitas skema hasil AI         | Kolom `result` JSONB + `AiResponseSchema` (Zod)                                                               |
+| NFR-020  | Konsistensi kontrak integrasi        | `ai-response.schema.ts`, mock = nyata (validator sama)                                                        |
+| NFR-021  | Response konsisten                   | `utils/response.ts`, `middlewares/error.ts`                                                                   |
+| NFR-022  | Logging & observability              | `config/logger.ts` (Pino), `reqId` correlation, `/health`                                                     |
+| SEC-001  | Hash password                        | `security/password-manager.ts`                                                                                |
+| SEC-002  | Autentikasi JWT                      | `middlewares/auth.ts`, `security/token-manager.ts`                                                            |
+| SEC-003  | Otorisasi kepemilikan                | Ownership check di use-case (cvs/analyses) + `WHERE user_id=$1`                                               |
+| SEC-004  | Manajemen token                      | `token-manager` (expiry), logout sisi klien                                                                   |
+| SEC-005  | Validasi & sanitasi input            | `middlewares/validate.ts` (Zod)                                                                               |
+| SEC-006  | Proteksi injeksi                     | Parameterized queries di semua repository                                                                     |
+| SEC-007  | CORS                                 | `middlewares/cors.ts`                                                                                         |
+| SEC-008  | Rate limiting                        | `middlewares/rate-limit.ts` (global + strict)                                                                 |
+| SEC-009  | Proteksi komunikasi (HTTPS)          | Deployment (`ALLOWED_ORIGINS`/`AI_BASE_URL` https)                                                            |
+| SEC-010  | Pengelolaan secrets                  | `config/index.ts` (env-only, fail-fast)                                                                       |
+| SEC-011  | Isolasi AI dari FE                   | AI hanya dipanggil dari `services/ai-gateway/` di backend                                                     |
+| VAL-001  | Validasi registrasi                  | `auth/validators/auth.schema.ts` (`RegisterSchema`)                                                           |
+| VAL-002  | Validasi login                       | `auth/validators/auth.schema.ts` (`LoginSchema`)                                                              |
+| VAL-003  | Validasi upload teks                 | `cvs/validators/cvs.schema.ts` (`UploadCvTextSchema`, min 100)                                                |
+| VAL-004  | Validasi upload berkas               | `middlewares/upload.ts` (MIME + size)                                                                         |
+| VAL-005  | Validasi edit biodata                | `users/validators/users.schema.ts` (`UpdateProfileSchema`)                                                    |
+| VAL-006  | Validasi parameter & path            | `CvIdParamSchema`, `utils/pagination.ts`                                                                      |
+| VAL-007  | Validasi respons AI                  | `services/ai-gateway/ai-response.schema.ts`, `utils/ai-schema-validator.ts`                                   |
+| VAL-008  | Aturan filtering tampilan            | `get-analysis.use-case.ts` (filter/sort di use-case layer)                                                    |
+| DATA-001 | Data User                            | `migrations/001_create_users.sql`                                                                             |
+| DATA-002 | Data CV                              | `migrations/002_create_cvs.sql`                                                                               |
+| DATA-003 | Data Analisis                        | `migrations/003_create_analyses.sql`, kolom JSONB `result`                                                    |
+| DATA-004 | Data Kategori                        | `migrations/004_create_categories.sql`                                                                        |
+| DATA-005 | Payload hasil (kontrak)              | `ai-response.schema.ts`, kolom `result`                                                                       |
+| DATA-006 | Integritas & relasi                  | FK `ON DELETE CASCADE`, index (`005`)                                                                         |
+| DATA-007 | Retensi & kepemilikan                | Ownership check + `WHERE user_id=$1` di repository                                                            |
 
 ---
 
@@ -1327,7 +1450,7 @@ LOG_LEVEL=debug
 ## Lampiran A — Daftar File & Tanggung Jawab
 
 | Path File                                                       | Tanggung Jawab (1 kalimat)                                                | Layer              | ID SRS                  |
-| -----------------------------------------------------------------| ---------------------------------------------------------------------------| --------------------| -------------------------|
+| --------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------ | ----------------------- |
 | `src/app.ts`                                                    | Membuat instance Express dan memasang middleware global + router.         | Bootstrap          | NFR-021                 |
 | `src/server.ts`                                                 | Entry point: validasi env, init pool, test DB, listen, graceful shutdown. | Bootstrap          | NFR-010                 |
 | `src/config/index.ts`                                           | Memuat & memvalidasi env var dengan Zod (fail-fast).                      | Config             | SEC-010                 |
@@ -1343,16 +1466,15 @@ LOG_LEVEL=debug
 | `src/exceptions/ai-gateway-error.ts`                            | Error AI 502/504/422 berdasarkan `type`.                                  | Exception          | FR-013                  |
 | `src/middlewares/auth.ts`                                       | Verifikasi JWT & set `req.user`.                                          | Middleware         | FR-004, SEC-002         |
 | `src/middlewares/error.ts`                                      | Error handler global terpusat.                                            | Middleware         | NFR-021                 |
-| `src/middlewares/validate.ts`                                   | Factory validasi Zod per source.                                          | Middleware         | SEC-005, VAL-*          |
+| `src/middlewares/validate.ts`                                   | Factory validasi Zod per source.                                          | Middleware         | SEC-005, VAL-\*         |
 | `src/middlewares/rate-limit.ts`                                 | Limiter global & strict.                                                  | Middleware         | SEC-008                 |
 | `src/middlewares/cors.ts`                                       | Kebijakan CORS dari env.                                                  | Middleware         | SEC-007                 |
 | `src/middlewares/upload.ts`                                     | Multer memoryStorage + filter MIME/size.                                  | Middleware         | FR-009, VAL-004         |
-| `src/routes/index.ts`                                           | Mount seluruh domain router ke `/api/v1`.                                 | Route              | API-*                   |
+| `src/routes/index.ts`                                           | Mount seluruh domain router ke `/api/v1`.                                 | Route              | API-\*                  |
 | `src/security/token-manager.ts`                                 | Sign/verify JWT.                                                          | Security           | SEC-002                 |
 | `src/security/password-manager.ts`                              | Hash/compare bcrypt.                                                      | Security           | SEC-001                 |
 | `src/utils/response.ts`                                         | Helper `{ data, error, meta }`.                                           | Util               | NFR-021                 |
 | `src/utils/pagination.ts`                                       | Parse limit/offset + meta.                                                | Util               | VAL-006                 |
-| `src/utils/extract-text.ts`                                     | Ekstraksi teks PDF/DOCX.                                                  | Util               | FR-009                  |
 | `src/utils/ai-schema-validator.ts`                              | Validasi payload AI (Zod).                                                | Util               | VAL-007                 |
 | `src/services/auth/routes/auth.route.ts`                        | Definisi route auth.                                                      | Route              | API-001, API-002        |
 | `src/services/auth/controllers/auth.controller.ts`              | Controller register/login.                                                | Controller         | FR-001, FR-002          |
@@ -1367,7 +1489,7 @@ LOG_LEVEL=debug
 | `src/services/users/validators/users.schema.ts`                 | Schema update profil.                                                     | UseCase(Validator) | VAL-005                 |
 | `src/services/cvs/controllers/cvs.controller.ts`                | Controller CV (upload/list/get/delete).                                   | Controller         | FR-008..FR-012          |
 | `src/services/cvs/use-cases/upload-cv-text.use-case.ts`         | Simpan CV teks.                                                           | UseCase            | FR-008                  |
-| `src/services/cvs/use-cases/upload-cv-file.use-case.ts`         | Ekstrak & simpan CV berkas.                                               | UseCase            | FR-009                  |
+| `src/services/cvs/use-cases/upload-cv-file.use-case.ts`         | Simpan CV berkas mentah (diteruskan ke AI).                               | UseCase            | FR-009                  |
 | `src/services/cvs/use-cases/delete-cv.use-case.ts`              | Hapus CV + cek kepemilikan.                                               | UseCase            | FR-012, SEC-003         |
 | `src/services/cvs/use-cases/list-cvs.use-case.ts`               | Daftar CV pengguna.                                                       | UseCase            | FR-012                  |
 | `src/services/cvs/repositories/cvs.repository.ts`               | Query cvs.                                                                | Repository         | DATA-002                |
@@ -1397,7 +1519,7 @@ LOG_LEVEL=debug
 | `migrations/005_add_indexes.sql`                                | Index performa + GIN.                                                     | Migration          | NFR-011, DATA-006       |
 | `tests/unit/auth.use-case.test.ts`                              | Unit test use-case auth.                                                  | Test               | FR-001, FR-002          |
 | `tests/unit/ai-gateway.test.ts`                                 | Unit test adapter & error mapping.                                        | Test               | FR-013, FR-015          |
-| `tests/unit/zod-schemas.test.ts`                                | Unit test schema validasi.                                                | Test               | VAL-*, VAL-007          |
+| `tests/unit/zod-schemas.test.ts`                                | Unit test schema validasi.                                                | Test               | VAL-\*, VAL-007         |
 | `tests/integration/auth.integration.test.ts`                    | Integration test endpoint auth.                                           | Test               | API-001, API-002        |
 | `tests/integration/cvs.integration.test.ts`                     | Integration test endpoint CV.                                             | Test               | API-006..API-009        |
 | `tests/integration/analyses.integration.test.ts`                | Integration test endpoint analisis.                                       | Test               | API-010..API-013        |
@@ -1406,30 +1528,28 @@ LOG_LEVEL=debug
 
 ## Lampiran B — Dependency NPM
 
-| Package | Versi | Kategori | Kegunaan |
-|---|---|---|---|
-| `express` | ^4.x | Core | HTTP framework (BR-3) |
-| `typescript` | ^5.x | Dev | Type system |
-| `zod` | ^3.x | Core | Schema validation (VAL-*, VAL-007) |
-| `pg` | ^8.x | Core | PostgreSQL client (BR-4) |
-| `jsonwebtoken` | ^9.x | Core | JWT sign/verify (SEC-002) |
-| `bcrypt` | ^5.x | Core | Password hashing (SEC-001) |
-| `axios` | ^1.x | Core | HTTP client untuk AI gateway |
-| `multer` | ^1.x | Core | Middleware upload berkas (FR-009) |
-| `pdf-parse` | ^1.x | Core | Ekstraksi teks PDF |
-| `mammoth` | ^1.x | Core | Ekstraksi teks DOCX |
-| `pino` | ^9.x | Core | Logger JSON cepat (NFR-022) |
-| `cors` | ^2.x | Core | Middleware CORS (SEC-007) |
-| `express-rate-limit` | ^7.x | Core | Rate limiting (SEC-008) |
-| `dotenv` | ^16.x | Core | Memuat env var |
-| `nanoid` | ^5.x | Core | Correlation ID (`reqId`) untuk logging |
-| `ts-node-dev` | ^2.x | Dev | Hot reload pengembangan |
-| `jest` | ^29.x | Dev | Framework pengujian |
-| `supertest` | ^6.x | Dev | Pengujian integrasi HTTP |
-| `eslint` | ^8.x | Dev | Linting (NFR-016) |
-| `prettier` | ^3.x | Dev | Formatting kode |
-| `@types/express`, `@types/jsonwebtoken`, `@types/bcrypt`, `@types/multer`, `@types/pg`, `@types/supertest` | latest | Dev | Definisi tipe TypeScript |
+| Package                                                                                                    | Versi  | Kategori | Kegunaan                                            |
+| ---------------------------------------------------------------------------------------------------------- | ------ | -------- | --------------------------------------------------- |
+| `express`                                                                                                  | ^4.x   | Core     | HTTP framework (BR-3)                               |
+| `typescript`                                                                                               | ^5.x   | Dev      | Type system                                         |
+| `zod`                                                                                                      | ^3.x   | Core     | Schema validation (VAL-\*, VAL-007)                 |
+| `pg`                                                                                                       | ^8.x   | Core     | PostgreSQL client (BR-4)                            |
+| `jsonwebtoken`                                                                                             | ^9.x   | Core     | JWT sign/verify (SEC-002)                           |
+| `bcrypt`                                                                                                   | ^5.x   | Core     | Password hashing (SEC-001)                          |
+| `axios`                                                                                                    | ^1.x   | Core     | HTTP client untuk AI gateway                        |
+| `multer`                                                                                                   | ^1.x   | Core     | Middleware upload berkas, diteruskan ke AI (FR-009) |
+| `pino`                                                                                                     | ^9.x   | Core     | Logger JSON cepat (NFR-022)                         |
+| `cors`                                                                                                     | ^2.x   | Core     | Middleware CORS (SEC-007)                           |
+| `express-rate-limit`                                                                                       | ^7.x   | Core     | Rate limiting (SEC-008)                             |
+| `dotenv`                                                                                                   | ^16.x  | Core     | Memuat env var                                      |
+| `nanoid`                                                                                                   | ^5.x   | Core     | Correlation ID (`reqId`) untuk logging              |
+| `ts-node-dev`                                                                                              | ^2.x   | Dev      | Hot reload pengembangan                             |
+| `jest`                                                                                                     | ^29.x  | Dev      | Framework pengujian                                 |
+| `supertest`                                                                                                | ^6.x   | Dev      | Pengujian integrasi HTTP                            |
+| `eslint`                                                                                                   | ^8.x   | Dev      | Linting (NFR-016)                                   |
+| `prettier`                                                                                                 | ^3.x   | Dev      | Formatting kode                                     |
+| `@types/express`, `@types/jsonwebtoken`, `@types/bcrypt`, `@types/multer`, `@types/pg`, `@types/supertest` | latest | Dev      | Definisi tipe TypeScript                            |
 
 ---
 
-*Dokumen ini diturunkan dari PRD Path`Ora v1.2, SRS Path`Ora v1.0, dan API Contract (`docs/contract-api-Ai.json`), serta diselaraskan dengan SDD Frontend v1.0. Seluruh keputusan desain backend mengacu pada ID kebutuhan (FR/NFR/SEC/VAL/DATA/API) dan konsisten dengan struktur folder `pathora-backend/` yang telah ditetapkan. Fitur F8 (Dashboard Agregat Admin) dikecualikan dari dokumen ini sesuai batasan scope. — 30 Mei 2026*
+_Dokumen ini diturunkan dari PRD Path`Ora v1.2, SRS Path`Ora v1.0, dan API Contract (`docs/contract-api-Ai.json`), serta diselaraskan dengan SDD Frontend v1.0. Seluruh keputusan desain backend mengacu pada ID kebutuhan (FR/NFR/SEC/VAL/DATA/API) dan konsisten dengan struktur folder `pathora-backend/` yang telah ditetapkan. Fitur F8 (Dashboard Agregat Admin) dikecualikan dari dokumen ini sesuai batasan scope. — 30 Mei 2026_
