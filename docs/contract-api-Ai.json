@@ -9,8 +9,6 @@
     { "category": "DIGITAL-MEDIA", "confidence": 0.031 },
     { "category": "BUSINESS-DEVELOPMENT", "confidence": 0.022 },
     { "category": "FINANCE", "confidence": 0.018 }
-
-    //Kasih limitasi confidence misal di atas 0.05 untuk top_5_predictions
   ],
   "extracted_skills": [
     {
@@ -104,7 +102,6 @@
     { "category": "INFORMATION-TECHNOLOGY", "match_score": 0.832 },
     { "category": "ENGINEERING", "match_score": 0.075 },
     { "category": "DIGITAL-MEDIA", "match_score": 0.031 }
-    // Kasih limitasi match_scrore misal di atas 0.3 untuk rekomendasi karir
   ],
   "description_career_recommendations": "Based on the predicted category and extracted skills, the most suitable career paths include roles such as Machine Learning Engineer, Data Scientist, and AI Researcher. These roles leverage the strong skills in Python, TensorFlow, and PyTorch, which are highly relevant in the Information Technology sector. Additionally, there are opportunities in Engineering and Digital Media for roles that involve Machine Learning and Data Visualization, respectively."
 }
