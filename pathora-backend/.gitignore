@@ -2,6 +2,7 @@
 # Jangan pernah commit file .env yang berisi secrets
 .env
 .env.local
+.env.test
 .env.*.local
 # .env.example BOLEH di-commit (template tanpa nilai rahasia)
 
