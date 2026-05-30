@@ -110,7 +110,6 @@ Fungsi utama yang harus disediakan sistem:
 5. **Halaman Analysis** — Visualisasi Top 5 prediksi kategori, analisis skill gap dari prediksi teratas, dan deskripsi rekomendasi karir strategis.
 6. **Halaman Rekomendasi Karir** — Seluruh prediksi kategori beserta analisis skill gap per kategori.
 7. **Halaman Profile** — Biodata pengguna (lihat/edit) dan riwayat analisis CV.
-8. **Dashboard Agregat (Admin/Internal)** — Statistik agregat (total CV dianalisis, distribusi kategori, rata-rata confidence) — opsional/prioritas rendah.
 
 ### 2.3 Karakteristik Pengguna
 
@@ -119,7 +118,6 @@ Fungsi utama yang harus disediakan sistem:
 | **Fresh Graduate (IT/Data)** | Baru lulus, literasi digital dasar, belum tahu posisi yang cocok | Validasi arah karir & skill gap dengan UX cepat dan jelas |
 | **Career Switcher** | Berasal dari latar belakang non-IT, ingin pindah ke bidang IT/Data | Roadmap skill yang relevan dan seberapa jauh gap-nya |
 | **Job Seeker Aktif** | Sedang melamar banyak posisi | Optimasi CV agar sesuai target role |
-| **Admin/Tim Internal** | Tim pengembang/pengelola | Memantau metrik agregat dan kesehatan sistem |
 
 Seluruh pengguna mengakses sistem melalui browser desktop maupun mobile sehingga antarmuka wajib responsif dan minim friksi.
 
@@ -129,10 +127,9 @@ Seluruh pengguna mengakses sistem melalui browser desktop maupun mobile sehingga
 |---|---|---|---|
 | **ACT-01** | **Guest (Pengunjung)** | Pengguna belum terautentikasi | Akses halaman publik (Register, Login), endpoint referensi kategori, dan health check |
 | **ACT-02** | **Registered User (Pengguna Terdaftar)** | Pengguna yang telah login | Mengelola CV miliknya, memicu analisis, melihat dashboard/analysis/rekomendasi, mengelola biodata |
-| **ACT-03** | **Admin/Internal** | Pengelola sistem | Hak Registered User + akses dashboard agregat (opsional/P2) |
-| **ACT-04** | **AI/ML Service (Sistem Eksternal)** | Layanan inferensi AI | Menerima teks CV dan mengembalikan hasil analisis sesuai API Contract |
+| **ACT-03** | **AI/ML Service (Sistem Eksternal)** | Layanan inferensi AI | Menerima teks CV dan mengembalikan hasil analisis sesuai API Contract |
 
-> Catatan: Pemisahan peran Admin bersifat opsional (P2). Pada MVP, sistem cukup membedakan Guest dan Registered User.
+> Catatan: Pada MVP, sistem cukup membedakan Guest, Registered User, dan layanan eksternal AI/ML.
 
 ### 2.5 Batasan Sistem
 
@@ -256,7 +253,7 @@ Setiap kebutuhan fungsional ditulis dengan atribut: ID, Nama, Deskripsi, Aktor, 
 
 #### FR-011 — Pemicuan Analisis Setelah Upload
 - **Deskripsi:** Setelah CV diunggah, sistem harus memicu proses analisis dan mengarahkan pengguna ke Halaman Analysis saat selesai.
-- **Aktor:** Registered User (ACT-02), AI/ML Service (ACT-04)
+- **Aktor:** Registered User (ACT-02), AI/ML Service (ACT-03)
 - **Prioritas:** P0
 - **Acceptance Criteria:**
   - Ketika upload sukses, maka sistem memicu analisis (`POST /cvs/:cvId/analyze`).
@@ -275,7 +272,7 @@ Setiap kebutuhan fungsional ditulis dengan atribut: ID, Nama, Deskripsi, Aktor, 
 
 #### FR-013 — Orkestrasi Analisis & Resiliensi
 - **Deskripsi:** Backend harus mengirim teks CV ke layanan AI, menerima respons sesuai API Contract, menyimpan hasil, dan menangani kegagalan (timeout, layanan down, respons tidak valid) tanpa membuat sistem crash.
-- **Aktor:** Registered User (ACT-02), AI/ML Service (ACT-04)
+- **Aktor:** Registered User (ACT-02), AI/ML Service (ACT-03)
 - **Prioritas:** P0
 - **Acceptance Criteria:**
   - Diberikan layanan AI merespons valid, ketika analisis dipicu, maka Backend menyimpan hasil (status `success`) dan mengembalikan 200.
@@ -293,7 +290,7 @@ Setiap kebutuhan fungsional ditulis dengan atribut: ID, Nama, Deskripsi, Aktor, 
 
 #### FR-015 — Mock Adapter Layanan AI
 - **Deskripsi:** Selama layanan AI belum tersedia, Backend harus menyediakan mock response yang sesuai API Contract untuk mendukung pengembangan paralel.
-- **Aktor:** AI/ML Service (ACT-04)
+- **Aktor:** AI/ML Service (ACT-03)
 - **Prioritas:** P0
 - **Acceptance Criteria:**
   - Ketika mode mock aktif, maka Backend mengembalikan payload valid sesuai contract sehingga seluruh alur FE/BE dapat diuji tanpa layanan AI nyata.
@@ -370,28 +367,18 @@ Setiap kebutuhan fungsional ditulis dengan atribut: ID, Nama, Deskripsi, Aktor, 
   - Daftar riwayat tampil lengkap dan terurut.
   - Ketika item dipilih, maka sistem membuka Halaman Analysis terkait.
 
-### 3.8 Dashboard Agregat Admin (F8)
+### 3.8 Data Referensi & Operasional
 
-#### FR-024 — Statistik Agregat (Opsional)
-- **Deskripsi:** Sistem dapat menampilkan total CV dianalisis, distribusi kategori prediksi, dan rata-rata confidence untuk Admin/Internal.
-- **Aktor:** Admin/Internal (ACT-03)
-- **Prioritas:** P2
-- **Acceptance Criteria:**
-  - Ketika Admin membuka dashboard agregat, maka statistik agregat ditampilkan secara ringkas.
-  - Akses dibatasi untuk peran Admin.
-
-### 3.9 Data Referensi & Operasional
-
-#### FR-025 — Data Referensi Kategori
+#### FR-024 — Data Referensi Kategori
 - **Deskripsi:** Sistem harus menyediakan data referensi kategori karir (kode, nama tampilan, deskripsi).
 - **Aktor:** Guest (ACT-01), Registered User (ACT-02)
 - **Prioritas:** P1
 - **Acceptance Criteria:**
   - Endpoint kategori mengembalikan daftar kategori beserta atributnya.
 
-#### FR-026 — Health Check
+#### FR-025 — Health Check
 - **Deskripsi:** Sistem harus menyediakan endpoint health check untuk observability.
-- **Aktor:** Guest (ACT-01), Admin/Internal (ACT-03)
+- **Aktor:** Guest (ACT-01)
 - **Prioritas:** P0
 - **Acceptance Criteria:**
   - Ketika endpoint `/health` dipanggil, maka sistem mengembalikan status kesehatan (200) tanpa autentikasi.
@@ -725,15 +712,7 @@ Bagian ini menjelaskan kebutuhan API secara konseptual mengikuti konvensi RESTfu
 - **Response data:** Daftar kategori (code, display_name, description); status 200.
 - **Error case:** 500 (kesalahan server).
 
-### API-015 — Dashboard Agregat (Opsional)
-- **Tujuan:** Menyediakan agregat untuk Admin/Internal.
-- **Method / Endpoint:** `GET /dashboard/summary`
-- **Auth:** Ya (Admin)
-- **Request data:** —
-- **Response data:** Total CV dianalisis, distribusi kategori, rata-rata confidence; status 200.
-- **Error case:** 401, 403.
-
-### API-016 — Health Check
+### API-015 — Health Check
 - **Tujuan:** Memeriksa kesehatan layanan.
 - **Method / Endpoint:** `GET /health`
 - **Auth:** Tidak
@@ -927,7 +906,7 @@ Daftar use case utama berdasarkan fitur PRD. Setiap use case memuat ID, Nama, Ak
 - **Postcondition:** Pengguna memperoleh gambaran status terbaru dan jalur menuju aksi berikutnya.
 
 ### UC-005 — Mengunggah CV & Memicu Analisis
-- **Aktor:** Registered User (ACT-02), AI/ML Service (ACT-04)
+- **Aktor:** Registered User (ACT-02), AI/ML Service (ACT-03)
 - **Precondition:** Pengguna login dan berada di halaman Upload.
 - **Main Flow:**
   1. Pengguna menempel teks CV atau mengunggah berkas PDF/DOCX.
@@ -987,16 +966,6 @@ Daftar use case utama berdasarkan fitur PRD. Setiap use case memuat ID, Nama, Ak
   - 2a. CV bukan milik pengguna → sistem menolak (403/404).
 - **Postcondition:** Daftar CV mencerminkan kondisi terkini.
 
-### UC-010 — Melihat Dashboard Agregat (Opsional)
-- **Aktor:** Admin/Internal (ACT-03)
-- **Precondition:** Admin login dan memiliki hak akses.
-- **Main Flow:**
-  1. Admin membuka dashboard agregat.
-  2. Sistem menampilkan total CV dianalisis, distribusi kategori, dan rata-rata confidence.
-- **Alternative Flow:**
-  - 1a. Bukan Admin → akses ditolak (403).
-- **Postcondition:** Admin memperoleh gambaran agregat sistem.
-
 ---
 
 ## 11. Acceptance Criteria Global
@@ -1034,9 +1003,8 @@ Tabel berikut memetakan fitur pada PRD ke kebutuhan SRS yang relevan, sehingga s
 | **F5** Halaman Analysis | Top 5 predictions, skill gap, deskripsi karir | FR-016, FR-017, FR-018, FR-019 | UI-009, UI-013 | API-013 | DATA-005 | VAL-008 | UC-006 |
 | **F6** Rekomendasi Karir | Seluruh kategori + skill gap per kategori | FR-020, FR-021 | UI-010, UI-013 | API-013 | DATA-005 | VAL-008 | UC-007 |
 | **F7** Profile | Biodata (lihat/edit) + riwayat analisis | FR-022, FR-023 | UI-007, UI-011 | API-003, API-004, API-012 | DATA-001, DATA-003 | SEC-003, VAL-005 | UC-008 |
-| **F8** Dashboard Agregat (Opsional) | Statistik agregat admin | FR-024 | — | API-015 | DATA-003 | SEC-003 | UC-010 |
-| **Referensi & Ops** | Kategori, health check | FR-025, FR-026 | — | API-014, API-016 | DATA-004 | NFR-022 | — |
-| **BR-1..BR-11** | Kriteria proyek (Vite, Axios, Express, Postgres, REST, AI, resilient, mockup, responsif, deploy, Tailwind) | FR-013 (resilient) | UI-001, UI-002, UI-015 | API-001..API-016 | DATA-001..DATA-006 | NFR-001, NFR-009, NFR-013, NFR-021 | Seluruh UC |
+| **Referensi & Ops** | Kategori, health check | FR-024, FR-025 | — | API-014, API-015 | DATA-004 | NFR-022 | — |
+| **BR-1..BR-11** | Kriteria proyek (Vite, Axios, Express, Postgres, REST, AI, resilient, mockup, responsif, deploy, Tailwind) | FR-013 (resilient) | UI-001, UI-002, UI-015 | API-001..API-015 | DATA-001..DATA-006 | NFR-001, NFR-009, NFR-013, NFR-021 | Seluruh UC |
 
 ---
 
