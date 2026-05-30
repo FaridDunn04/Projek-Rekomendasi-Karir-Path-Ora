@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "node-pg-migrate": "^8.0.4",
+    "nodemon": "^3.1.14"
+  }
+}

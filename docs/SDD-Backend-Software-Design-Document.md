@@ -1326,81 +1326,81 @@ LOG_LEVEL=debug
 
 ## Lampiran A — Daftar File & Tanggung Jawab
 
-| Path File | Tanggung Jawab (1 kalimat) | Layer | ID SRS |
-|---|---|---|---|
-| `src/app.ts` | Membuat instance Express dan memasang middleware global + router. | Bootstrap | NFR-021 |
-| `src/server.ts` | Entry point: validasi env, init pool, test DB, listen, graceful shutdown. | Bootstrap | NFR-010 |
-| `src/config/index.ts` | Memuat & memvalidasi env var dengan Zod (fail-fast). | Config | SEC-010 |
-| `src/config/database.ts` | Inisialisasi `pg.Pool` & wrapper `query()`. | Config | NFR-002, NFR-011 |
-| `src/config/logger.ts` | Setup logger Pino per environment. | Config | NFR-022 |
-| `src/exceptions/base-error.ts` | Kelas dasar `HttpException` (statusCode, message, details). | Exception | NFR-021 |
-| `src/exceptions/authentication-error.ts` | Error 401. | Exception | SEC-002 |
-| `src/exceptions/authorization-error.ts` | Error 403. | Exception | SEC-003 |
-| `src/exceptions/not-found-error.ts` | Error 404. | Exception | — |
-| `src/exceptions/client-error.ts` | Error 400/422 (validasi). | Exception | SEC-005 |
-| `src/exceptions/conflict-error.ts` | Error 409 (duplikat). | Exception | FR-001 |
-| `src/exceptions/invariant-error.ts` | Error 422 (assertion domain). | Exception | VAL-007 |
-| `src/exceptions/ai-gateway-error.ts` | Error AI 502/504/422 berdasarkan `type`. | Exception | FR-013 |
-| `src/middlewares/auth.ts` | Verifikasi JWT & set `req.user`. | Middleware | FR-004, SEC-002 |
-| `src/middlewares/error.ts` | Error handler global terpusat. | Middleware | NFR-021 |
-| `src/middlewares/validate.ts` | Factory validasi Zod per source. | Middleware | SEC-005, VAL-* |
-| `src/middlewares/rate-limit.ts` | Limiter global & strict. | Middleware | SEC-008 |
-| `src/middlewares/cors.ts` | Kebijakan CORS dari env. | Middleware | SEC-007 |
-| `src/middlewares/upload.ts` | Multer memoryStorage + filter MIME/size. | Middleware | FR-009, VAL-004 |
-| `src/routes/index.ts` | Mount seluruh domain router ke `/api/v1`. | Route | API-* |
-| `src/security/token-manager.ts` | Sign/verify JWT. | Security | SEC-002 |
-| `src/security/password-manager.ts` | Hash/compare bcrypt. | Security | SEC-001 |
-| `src/utils/response.ts` | Helper `{ data, error, meta }`. | Util | NFR-021 |
-| `src/utils/pagination.ts` | Parse limit/offset + meta. | Util | VAL-006 |
-| `src/utils/extract-text.ts` | Ekstraksi teks PDF/DOCX. | Util | FR-009 |
-| `src/utils/ai-schema-validator.ts` | Validasi payload AI (Zod). | Util | VAL-007 |
-| `src/services/auth/routes/auth.route.ts` | Definisi route auth. | Route | API-001, API-002 |
-| `src/services/auth/controllers/auth.controller.ts` | Controller register/login. | Controller | FR-001, FR-002 |
-| `src/services/auth/use-cases/register.use-case.ts` | Logika registrasi. | UseCase | FR-001 |
-| `src/services/auth/use-cases/login.use-case.ts` | Logika login + token. | UseCase | FR-002 |
-| `src/services/auth/repositories/auth.repository.ts` | Query users (auth). | Repository | DATA-001 |
-| `src/services/auth/validators/auth.schema.ts` | Schema register/login. | UseCase(Validator) | VAL-001, VAL-002 |
-| `src/services/users/controllers/users.controller.ts` | Controller profil. | Controller | FR-022 |
-| `src/services/users/use-cases/get-profile.use-case.ts` | Ambil profil. | UseCase | FR-022, API-003 |
-| `src/services/users/use-cases/update-profile.use-case.ts` | Update profil + cek email unik. | UseCase | FR-022, API-004 |
-| `src/services/users/repositories/users.repository.ts` | Query users (profil). | Repository | DATA-001 |
-| `src/services/users/validators/users.schema.ts` | Schema update profil. | UseCase(Validator) | VAL-005 |
-| `src/services/cvs/controllers/cvs.controller.ts` | Controller CV (upload/list/get/delete). | Controller | FR-008..FR-012 |
-| `src/services/cvs/use-cases/upload-cv-text.use-case.ts` | Simpan CV teks. | UseCase | FR-008 |
-| `src/services/cvs/use-cases/upload-cv-file.use-case.ts` | Ekstrak & simpan CV berkas. | UseCase | FR-009 |
-| `src/services/cvs/use-cases/delete-cv.use-case.ts` | Hapus CV + cek kepemilikan. | UseCase | FR-012, SEC-003 |
-| `src/services/cvs/use-cases/list-cvs.use-case.ts` | Daftar CV pengguna. | UseCase | FR-012 |
-| `src/services/cvs/repositories/cvs.repository.ts` | Query cvs. | Repository | DATA-002 |
-| `src/services/cvs/validators/cvs.schema.ts` | Schema upload teks & param cvId. | UseCase(Validator) | VAL-003, VAL-006 |
-| `src/services/analyses/controllers/analyses.controller.ts` | Controller analisis (trigger/get/list). | Controller | FR-013..FR-014 |
-| `src/services/analyses/use-cases/trigger-analysis.use-case.ts` | Orkestrasi analisis + resiliensi. | UseCase | FR-013, NFR-009 |
-| `src/services/analyses/use-cases/get-analysis.use-case.ts` | Ambil analisis + filter/sort. | UseCase | FR-016..FR-021, VAL-008 |
-| `src/services/analyses/use-cases/list-analyses.use-case.ts` | Riwayat analisis. | UseCase | FR-023, API-012 |
-| `src/services/analyses/repositories/analyses.repository.ts` | Query analyses (CRUD + JSONB). | Repository | DATA-003, FR-014 |
-| `src/services/analyses/validators/analyses.schema.ts` | Schema param analysisId. | UseCase(Validator) | VAL-006 |
-| `src/services/ai-gateway/ai-gateway.adapter.ts` | Interface `AiGatewayAdapter`. | Gateway | NFR-020 |
-| `src/services/ai-gateway/ai-gateway.http.ts` | Implementasi HTTP (axios) + error mapping. | Gateway | FR-013, NFR-003 |
-| `src/services/ai-gateway/ai-gateway.mock.ts` | Implementasi mock sesuai kontrak. | Gateway | FR-015 |
-| `src/services/ai-gateway/ai-gateway.factory.ts` | Pilih implementasi via `USE_MOCK_AI`. | Gateway | BTS-03 |
-| `src/services/ai-gateway/ai-response.schema.ts` | Schema Zod API Contract. | Gateway | VAL-007, DATA-005 |
-| `src/services/dashboard/controllers/dashboard.controller.ts` | Controller dashboard. | Controller | FR-005..FR-007 |
-| `src/services/dashboard/use-cases/get-dashboard.use-case.ts` | Agregasi data dashboard (parallel). | UseCase | FR-005, API-005 |
-| `src/services/dashboard/repositories/dashboard.repository.ts` | Query last analysis & history. | Repository | FR-007 |
-| `src/services/categories/controllers/categories.controller.ts` | Controller kategori (+ cache). | Controller | FR-024 |
-| `src/services/categories/repositories/categories.repository.ts` | Query categories. | Repository | DATA-004 |
-| `src/services/health/health.controller.ts` | Cek DB & status layanan. | Controller | FR-025, NFR-022 |
-| `src/services/health/health.route.ts` | Route health. | Route | API-015 |
-| `migrations/001_create_users.sql` | DDL tabel users. | Migration | DATA-001 |
-| `migrations/002_create_cvs.sql` | DDL tabel cvs. | Migration | DATA-002 |
-| `migrations/003_create_analyses.sql` | DDL tabel analyses (JSONB). | Migration | DATA-003 |
-| `migrations/004_create_categories.sql` | DDL + seed categories. | Migration | DATA-004 |
-| `migrations/005_add_indexes.sql` | Index performa + GIN. | Migration | NFR-011, DATA-006 |
-| `tests/unit/auth.use-case.test.ts` | Unit test use-case auth. | Test | FR-001, FR-002 |
-| `tests/unit/ai-gateway.test.ts` | Unit test adapter & error mapping. | Test | FR-013, FR-015 |
-| `tests/unit/zod-schemas.test.ts` | Unit test schema validasi. | Test | VAL-*, VAL-007 |
-| `tests/integration/auth.integration.test.ts` | Integration test endpoint auth. | Test | API-001, API-002 |
-| `tests/integration/cvs.integration.test.ts` | Integration test endpoint CV. | Test | API-006..API-009 |
-| `tests/integration/analyses.integration.test.ts` | Integration test endpoint analisis. | Test | API-010..API-013 |
+| Path File                                                       | Tanggung Jawab (1 kalimat)                                                | Layer              | ID SRS                  |
+| -----------------------------------------------------------------| ---------------------------------------------------------------------------| --------------------| -------------------------|
+| `src/app.ts`                                                    | Membuat instance Express dan memasang middleware global + router.         | Bootstrap          | NFR-021                 |
+| `src/server.ts`                                                 | Entry point: validasi env, init pool, test DB, listen, graceful shutdown. | Bootstrap          | NFR-010                 |
+| `src/config/index.ts`                                           | Memuat & memvalidasi env var dengan Zod (fail-fast).                      | Config             | SEC-010                 |
+| `src/config/database.ts`                                        | Inisialisasi `pg.Pool` & wrapper `query()`.                               | Config             | NFR-002, NFR-011        |
+| `src/config/logger.ts`                                          | Setup logger Pino per environment.                                        | Config             | NFR-022                 |
+| `src/exceptions/base-error.ts`                                  | Kelas dasar `HttpException` (statusCode, message, details).               | Exception          | NFR-021                 |
+| `src/exceptions/authentication-error.ts`                        | Error 401.                                                                | Exception          | SEC-002                 |
+| `src/exceptions/authorization-error.ts`                         | Error 403.                                                                | Exception          | SEC-003                 |
+| `src/exceptions/not-found-error.ts`                             | Error 404.                                                                | Exception          | —                       |
+| `src/exceptions/client-error.ts`                                | Error 400/422 (validasi).                                                 | Exception          | SEC-005                 |
+| `src/exceptions/conflict-error.ts`                              | Error 409 (duplikat).                                                     | Exception          | FR-001                  |
+| `src/exceptions/invariant-error.ts`                             | Error 422 (assertion domain).                                             | Exception          | VAL-007                 |
+| `src/exceptions/ai-gateway-error.ts`                            | Error AI 502/504/422 berdasarkan `type`.                                  | Exception          | FR-013                  |
+| `src/middlewares/auth.ts`                                       | Verifikasi JWT & set `req.user`.                                          | Middleware         | FR-004, SEC-002         |
+| `src/middlewares/error.ts`                                      | Error handler global terpusat.                                            | Middleware         | NFR-021                 |
+| `src/middlewares/validate.ts`                                   | Factory validasi Zod per source.                                          | Middleware         | SEC-005, VAL-*          |
+| `src/middlewares/rate-limit.ts`                                 | Limiter global & strict.                                                  | Middleware         | SEC-008                 |
+| `src/middlewares/cors.ts`                                       | Kebijakan CORS dari env.                                                  | Middleware         | SEC-007                 |
+| `src/middlewares/upload.ts`                                     | Multer memoryStorage + filter MIME/size.                                  | Middleware         | FR-009, VAL-004         |
+| `src/routes/index.ts`                                           | Mount seluruh domain router ke `/api/v1`.                                 | Route              | API-*                   |
+| `src/security/token-manager.ts`                                 | Sign/verify JWT.                                                          | Security           | SEC-002                 |
+| `src/security/password-manager.ts`                              | Hash/compare bcrypt.                                                      | Security           | SEC-001                 |
+| `src/utils/response.ts`                                         | Helper `{ data, error, meta }`.                                           | Util               | NFR-021                 |
+| `src/utils/pagination.ts`                                       | Parse limit/offset + meta.                                                | Util               | VAL-006                 |
+| `src/utils/extract-text.ts`                                     | Ekstraksi teks PDF/DOCX.                                                  | Util               | FR-009                  |
+| `src/utils/ai-schema-validator.ts`                              | Validasi payload AI (Zod).                                                | Util               | VAL-007                 |
+| `src/services/auth/routes/auth.route.ts`                        | Definisi route auth.                                                      | Route              | API-001, API-002        |
+| `src/services/auth/controllers/auth.controller.ts`              | Controller register/login.                                                | Controller         | FR-001, FR-002          |
+| `src/services/auth/use-cases/register.use-case.ts`              | Logika registrasi.                                                        | UseCase            | FR-001                  |
+| `src/services/auth/use-cases/login.use-case.ts`                 | Logika login + token.                                                     | UseCase            | FR-002                  |
+| `src/services/auth/repositories/auth.repository.ts`             | Query users (auth).                                                       | Repository         | DATA-001                |
+| `src/services/auth/validators/auth.schema.ts`                   | Schema register/login.                                                    | UseCase(Validator) | VAL-001, VAL-002        |
+| `src/services/users/controllers/users.controller.ts`            | Controller profil.                                                        | Controller         | FR-022                  |
+| `src/services/users/use-cases/get-profile.use-case.ts`          | Ambil profil.                                                             | UseCase            | FR-022, API-003         |
+| `src/services/users/use-cases/update-profile.use-case.ts`       | Update profil + cek email unik.                                           | UseCase            | FR-022, API-004         |
+| `src/services/users/repositories/users.repository.ts`           | Query users (profil).                                                     | Repository         | DATA-001                |
+| `src/services/users/validators/users.schema.ts`                 | Schema update profil.                                                     | UseCase(Validator) | VAL-005                 |
+| `src/services/cvs/controllers/cvs.controller.ts`                | Controller CV (upload/list/get/delete).                                   | Controller         | FR-008..FR-012          |
+| `src/services/cvs/use-cases/upload-cv-text.use-case.ts`         | Simpan CV teks.                                                           | UseCase            | FR-008                  |
+| `src/services/cvs/use-cases/upload-cv-file.use-case.ts`         | Ekstrak & simpan CV berkas.                                               | UseCase            | FR-009                  |
+| `src/services/cvs/use-cases/delete-cv.use-case.ts`              | Hapus CV + cek kepemilikan.                                               | UseCase            | FR-012, SEC-003         |
+| `src/services/cvs/use-cases/list-cvs.use-case.ts`               | Daftar CV pengguna.                                                       | UseCase            | FR-012                  |
+| `src/services/cvs/repositories/cvs.repository.ts`               | Query cvs.                                                                | Repository         | DATA-002                |
+| `src/services/cvs/validators/cvs.schema.ts`                     | Schema upload teks & param cvId.                                          | UseCase(Validator) | VAL-003, VAL-006        |
+| `src/services/analyses/controllers/analyses.controller.ts`      | Controller analisis (trigger/get/list).                                   | Controller         | FR-013..FR-014          |
+| `src/services/analyses/use-cases/trigger-analysis.use-case.ts`  | Orkestrasi analisis + resiliensi.                                         | UseCase            | FR-013, NFR-009         |
+| `src/services/analyses/use-cases/get-analysis.use-case.ts`      | Ambil analisis + filter/sort.                                             | UseCase            | FR-016..FR-021, VAL-008 |
+| `src/services/analyses/use-cases/list-analyses.use-case.ts`     | Riwayat analisis.                                                         | UseCase            | FR-023, API-012         |
+| `src/services/analyses/repositories/analyses.repository.ts`     | Query analyses (CRUD + JSONB).                                            | Repository         | DATA-003, FR-014        |
+| `src/services/analyses/validators/analyses.schema.ts`           | Schema param analysisId.                                                  | UseCase(Validator) | VAL-006                 |
+| `src/services/ai-gateway/ai-gateway.adapter.ts`                 | Interface `AiGatewayAdapter`.                                             | Gateway            | NFR-020                 |
+| `src/services/ai-gateway/ai-gateway.http.ts`                    | Implementasi HTTP (axios) + error mapping.                                | Gateway            | FR-013, NFR-003         |
+| `src/services/ai-gateway/ai-gateway.mock.ts`                    | Implementasi mock sesuai kontrak.                                         | Gateway            | FR-015                  |
+| `src/services/ai-gateway/ai-gateway.factory.ts`                 | Pilih implementasi via `USE_MOCK_AI`.                                     | Gateway            | BTS-03                  |
+| `src/services/ai-gateway/ai-response.schema.ts`                 | Schema Zod API Contract.                                                  | Gateway            | VAL-007, DATA-005       |
+| `src/services/dashboard/controllers/dashboard.controller.ts`    | Controller dashboard.                                                     | Controller         | FR-005..FR-007          |
+| `src/services/dashboard/use-cases/get-dashboard.use-case.ts`    | Agregasi data dashboard (parallel).                                       | UseCase            | FR-005, API-005         |
+| `src/services/dashboard/repositories/dashboard.repository.ts`   | Query last analysis & history.                                            | Repository         | FR-007                  |
+| `src/services/categories/controllers/categories.controller.ts`  | Controller kategori (+ cache).                                            | Controller         | FR-024                  |
+| `src/services/categories/repositories/categories.repository.ts` | Query categories.                                                         | Repository         | DATA-004                |
+| `src/services/health/health.controller.ts`                      | Cek DB & status layanan.                                                  | Controller         | FR-025, NFR-022         |
+| `src/services/health/health.route.ts`                           | Route health.                                                             | Route              | API-015                 |
+| `migrations/001_create_users.sql`                               | DDL tabel users.                                                          | Migration          | DATA-001                |
+| `migrations/002_create_cvs.sql`                                 | DDL tabel cvs.                                                            | Migration          | DATA-002                |
+| `migrations/003_create_analyses.sql`                            | DDL tabel analyses (JSONB).                                               | Migration          | DATA-003                |
+| `migrations/004_create_categories.sql`                          | DDL + seed categories.                                                    | Migration          | DATA-004                |
+| `migrations/005_add_indexes.sql`                                | Index performa + GIN.                                                     | Migration          | NFR-011, DATA-006       |
+| `tests/unit/auth.use-case.test.ts`                              | Unit test use-case auth.                                                  | Test               | FR-001, FR-002          |
+| `tests/unit/ai-gateway.test.ts`                                 | Unit test adapter & error mapping.                                        | Test               | FR-013, FR-015          |
+| `tests/unit/zod-schemas.test.ts`                                | Unit test schema validasi.                                                | Test               | VAL-*, VAL-007          |
+| `tests/integration/auth.integration.test.ts`                    | Integration test endpoint auth.                                           | Test               | API-001, API-002        |
+| `tests/integration/cvs.integration.test.ts`                     | Integration test endpoint CV.                                             | Test               | API-006..API-009        |
+| `tests/integration/analyses.integration.test.ts`                | Integration test endpoint analisis.                                       | Test               | API-010..API-013        |
 
 ---
 
