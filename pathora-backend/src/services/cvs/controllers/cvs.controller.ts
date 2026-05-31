@@ -6,9 +6,9 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "@/utils/response.js";
-import { parsePagination } from "@/utils/pagination.js";
-import type { UploadCvTextDto } from "@/services/cvs/validators/cvs.schema.js";
+import { response } from "../../../utils/response";
+import { parsePagination } from "../../../utils/pagination";
+import type { UploadCvTextDto } from "../validators/cvs.schema";
 
 // ── Dependency Interfaces ──────────────────────────────────────────────────────
 
@@ -48,40 +48,31 @@ interface CvsControllerDeps {
   getCvUseCase: GetCvUseCase;
 }
 
-// ── Controller ─────────────────────────────────────────────────────────────────
+// ── Factory ────────────────────────────────────────────────────────────────────
 
-export class CvsController {
-  private readonly uploadCvTextUseCase: UploadCvTextUseCase;
-  private readonly uploadCvFileUseCase: UploadCvFileUseCase;
-  private readonly deleteCvUseCase: DeleteCvUseCase;
-  private readonly listCvsUseCase: ListCvsUseCase;
-  private readonly getCvUseCase: GetCvUseCase;
-
-  constructor(deps: CvsControllerDeps) {
-    this.uploadCvTextUseCase = deps.uploadCvTextUseCase;
-    this.uploadCvFileUseCase = deps.uploadCvFileUseCase;
-    this.deleteCvUseCase = deps.deleteCvUseCase;
-    this.listCvsUseCase = deps.listCvsUseCase;
-    this.getCvUseCase = deps.getCvUseCase;
-
-    this.upload = this.upload.bind(this);
-    this.list = this.list.bind(this);
-    this.getOne = this.getOne.bind(this);
-    this.remove = this.remove.bind(this);
-  }
-
+export function createCvsController({
+  uploadCvTextUseCase,
+  uploadCvFileUseCase,
+  deleteCvUseCase,
+  listCvsUseCase,
+  getCvUseCase,
+}: CvsControllerDeps) {
   /**
    * POST /cvs
    * Upload CV — deteksi mode: berkas (req.file) atau teks (req.body).
    */
-  async upload(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async function upload(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const userId = req.user!.id;
       let cv: unknown;
 
       if (req.file) {
         // Mode berkas — buffer mentah diteruskan ke AI saat analyze (revisi v1.1)
-        cv = await this.uploadCvFileUseCase.execute({
+        cv = await uploadCvFileUseCase.execute({
           userId,
           buffer: req.file.buffer,
           mimeType: req.file.mimetype,
@@ -90,7 +81,7 @@ export class CvsController {
       } else {
         // Mode teks
         const body = req.body as UploadCvTextDto;
-        cv = await this.uploadCvTextUseCase.execute({
+        cv = await uploadCvTextUseCase.execute({
           userId,
           raw_text: body.raw_text,
         });
@@ -106,11 +97,15 @@ export class CvsController {
    * GET /cvs
    * Daftar CV milik user dengan paginasi.
    */
-  async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async function list(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const userId = req.user!.id;
       const pagination = parsePagination(req.query as Record<string, unknown>);
-      const result = await this.listCvsUseCase.execute(userId, pagination);
+      const result = await listCvsUseCase.execute(userId, pagination);
       res
         .status(200)
         .json(
@@ -125,10 +120,14 @@ export class CvsController {
    * GET /cvs/:cvId
    * Detail satu CV.
    */
-  async getOne(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async function getOne(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { cvId } = req.params as { cvId: string };
-      const cv = await this.getCvUseCase.execute(cvId, req.user!.id);
+      const cv = await getCvUseCase.execute(cvId, req.user!.id);
       res.status(200).json(response.success(cv));
     } catch (err) {
       next(err);
@@ -139,13 +138,19 @@ export class CvsController {
    * DELETE /cvs/:cvId
    * Hapus CV milik user.
    */
-  async remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async function remove(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { cvId } = req.params as { cvId: string };
-      await this.deleteCvUseCase.execute(cvId, req.user!.id);
+      await deleteCvUseCase.execute(cvId, req.user!.id);
       res.status(200).json(response.success(null));
     } catch (err) {
       next(err);
     }
   }
+
+  return { upload, list, getOne, remove };
 }

@@ -25,7 +25,7 @@ export type UploadCvTextDto = z.infer<typeof UploadCvTextSchema>;
  * Validasi path parameter :cvId — harus UUID valid (VAL-006).
  */
 export const CvIdParamSchema = z.object({
-  cvId: z.string().uuid("cvId harus berupa UUID yang valid"),
+  cvId: z.uuid("cvId harus berupa UUID yang valid"),
 });
 
 export type CvIdParam = z.infer<typeof CvIdParamSchema>;

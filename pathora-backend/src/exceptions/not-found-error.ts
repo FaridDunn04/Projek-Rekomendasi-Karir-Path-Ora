@@ -8,7 +8,7 @@
  * Dipetakan ke HTTP 404 Not Found (SDD §3.2).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export class NotFoundError extends HttpException {
   constructor(message = "Resource tidak ditemukan") {

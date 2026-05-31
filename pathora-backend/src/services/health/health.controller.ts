@@ -8,14 +8,12 @@
  *  - Gagal  → 503 { status: 'degraded', db: 'error', timestamp }
  *
  * Endpoint ini TIDAK memerlukan autentikasi.
- * Digunakan sebagai probe monitoring platform (Railway/Render/Fly.io).
- * Respons tetap dibungkus response.success() untuk konsistensi (NFR-021).
  */
 
 import type { Request, Response } from "express";
-import { pool } from "@/config/database.js";
-import { response } from "@/utils/response.js";
-import { logger } from "@/config/logger.js";
+import { pool } from "../../config/database";
+import { response } from "../../utils/response";
+import { logger } from "../../config/logger";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -25,34 +23,24 @@ interface HealthStatus {
   timestamp: string;
 }
 
-// ── Controller ─────────────────────────────────────────────────────────────────
+// ── Controller Function ────────────────────────────────────────────────────────
 
-export class HealthController {
-  constructor() {
-    this.check = this.check.bind(this);
-  }
+/**
+ * GET /health
+ * Mengembalikan status layanan dan koneksi database.
+ */
+export async function healthCheck(_req: Request, res: Response): Promise<void> {
+  const timestamp = new Date().toISOString();
 
-  /**
-   * GET /health
-   * Mengembalikan status layanan dan koneksi database.
-   */
-  async check(_req: Request, res: Response): Promise<void> {
-    const timestamp = new Date().toISOString();
+  try {
+    await pool.query("SELECT 1");
 
-    try {
-      await pool.query("SELECT 1");
+    const status: HealthStatus = { status: "ok", db: "ok", timestamp };
+    res.status(200).json(response.success(status));
+  } catch (err) {
+    logger.error({ err }, "health.check.db_error");
 
-      const status: HealthStatus = { status: "ok", db: "ok", timestamp };
-      res.status(200).json(response.success(status));
-    } catch (err) {
-      logger.error({ err }, "health.check.db_error");
-
-      const status: HealthStatus = {
-        status: "degraded",
-        db: "error",
-        timestamp,
-      };
-      res.status(503).json(response.success(status));
-    }
+    const status: HealthStatus = { status: "degraded", db: "error", timestamp };
+    res.status(503).json(response.success(status));
   }
 }

@@ -6,8 +6,8 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "@/utils/response.js";
-import type { DashboardData } from "@/services/dashboard/use-cases/get-dashboard.use-case.js";
+import { response } from "../../../utils/response";
+import type { DashboardData } from "../use-cases/get-dashboard.use-case";
 
 // ── Dependency Interface ───────────────────────────────────────────────────────
 
@@ -19,31 +19,28 @@ interface DashboardControllerDeps {
   getDashboardUseCase: GetDashboardUseCase;
 }
 
-// ── Controller ─────────────────────────────────────────────────────────────────
+// ── Factory ────────────────────────────────────────────────────────────────────
 
-export class DashboardController {
-  private readonly getDashboardUseCase: GetDashboardUseCase;
-
-  constructor({ getDashboardUseCase }: DashboardControllerDeps) {
-    this.getDashboardUseCase = getDashboardUseCase;
-    this.getMyDashboard = this.getMyDashboard.bind(this);
-  }
-
+export function createDashboardController({
+  getDashboardUseCase,
+}: DashboardControllerDeps) {
   /**
    * GET /dashboard/me
    * Mengembalikan data Dashboard Utama: lastAnalysis + recentHistory (200).
    * lastAnalysis === null → empty state, ditangani FE (FR-005).
    */
-  async getMyDashboard(
+  async function getMyDashboard(
     req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const data = await this.getDashboardUseCase.execute(req.user!.id);
+      const data = await getDashboardUseCase.execute(req.user!.id);
       res.status(200).json(response.success(data));
     } catch (err) {
       next(err);
     }
   }
+
+  return { getMyDashboard };
 }

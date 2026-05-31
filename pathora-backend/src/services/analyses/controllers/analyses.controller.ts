@@ -6,8 +6,8 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "@/utils/response.js";
-import { parsePagination } from "@/utils/pagination.js";
+import { response } from "../../../utils/response.js";
+import { parsePagination } from "../../../utils/pagination.js";
 
 // ── Dependency Interfaces ──────────────────────────────────────────────────────
 
@@ -37,41 +37,26 @@ interface AnalysesControllerDeps {
   listAnalysesUseCase: ListAnalysesUseCase;
 }
 
-// ── Controller ─────────────────────────────────────────────────────────────────
+// ── Factory ────────────────────────────────────────────────────────────────────
 
-export class AnalysesController {
-  private readonly triggerAnalysisUseCase: TriggerAnalysisUseCase;
-  private readonly getAnalysisUseCase: GetAnalysisUseCase;
-  private readonly getLatestByCvUseCase: GetLatestByCvUseCase;
-  private readonly listAnalysesUseCase: ListAnalysesUseCase;
-
-  constructor(deps: AnalysesControllerDeps) {
-    this.triggerAnalysisUseCase = deps.triggerAnalysisUseCase;
-    this.getAnalysisUseCase = deps.getAnalysisUseCase;
-    this.getLatestByCvUseCase = deps.getLatestByCvUseCase;
-    this.listAnalysesUseCase = deps.listAnalysesUseCase;
-
-    this.trigger = this.trigger.bind(this);
-    this.getOne = this.getOne.bind(this);
-    this.getLatestByCv = this.getLatestByCv.bind(this);
-    this.list = this.list.bind(this);
-  }
-
+export function createAnalysesController({
+  triggerAnalysisUseCase,
+  getAnalysisUseCase,
+  getLatestByCvUseCase,
+  listAnalysesUseCase,
+}: AnalysesControllerDeps) {
   /**
    * POST /cvs/:cvId/analyze
    * Memicu analisis CV via AI Gateway.
    */
-  async trigger(
+  async function trigger(
     req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const { cvId } = req.params as { cvId: string };
-      const result = await this.triggerAnalysisUseCase.execute(
-        cvId,
-        req.user!.id,
-      );
+      const result = await triggerAnalysisUseCase.execute(cvId, req.user!.id);
       res.status(200).json(response.success(result));
     } catch (err) {
       next(err);
@@ -82,10 +67,14 @@ export class AnalysesController {
    * GET /analyses/:analysisId
    * Detail analisis dengan filtering tampilan (FR-016..FR-021).
    */
-  async getOne(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async function getOne(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { analysisId } = req.params as { analysisId: string };
-      const analysis = await this.getAnalysisUseCase.execute(
+      const analysis = await getAnalysisUseCase.execute(
         analysisId,
         req.user!.id,
       );
@@ -99,17 +88,14 @@ export class AnalysesController {
    * GET /cvs/:cvId/analysis
    * Analisis terbaru dari sebuah CV.
    */
-  async getLatestByCv(
+  async function getLatestByCv(
     req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const { cvId } = req.params as { cvId: string };
-      const analysis = await this.getLatestByCvUseCase.execute(
-        cvId,
-        req.user!.id,
-      );
+      const analysis = await getLatestByCvUseCase.execute(cvId, req.user!.id);
       res.status(200).json(response.success(analysis));
     } catch (err) {
       next(err);
@@ -120,11 +106,15 @@ export class AnalysesController {
    * GET /analyses
    * Riwayat analisis milik user dengan paginasi.
    */
-  async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async function list(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const userId = req.user!.id;
       const pagination = parsePagination(req.query as Record<string, unknown>);
-      const result = await this.listAnalysesUseCase.execute(userId, pagination);
+      const result = await listAnalysesUseCase.execute(userId, pagination);
       res
         .status(200)
         .json(
@@ -137,4 +127,6 @@ export class AnalysesController {
       next(err);
     }
   }
+
+  return { trigger, getOne, getLatestByCv, list };
 }

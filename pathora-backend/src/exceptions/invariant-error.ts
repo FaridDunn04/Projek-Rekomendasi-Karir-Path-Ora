@@ -13,7 +13,7 @@
  * Dipetakan ke HTTP 422 Unprocessable Entity (SDD §3.2, VAL-007).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export class InvariantError extends HttpException {
   constructor(message = "Kondisi tidak terpenuhi", details?: unknown) {

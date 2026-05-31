@@ -13,9 +13,9 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { HttpException } from "@/exceptions/base-error";
-import { response } from "@/utils/response";
-import { logger } from "@/config/logger";
+import { HttpException } from "../exceptions/base-error";
+import { response } from "../utils/response";
+import { logger } from "../config/logger";
 
 export function errorHandler(
   err: unknown,

@@ -8,7 +8,7 @@
  * Dipetakan ke HTTP 401 Unauthorized (SDD §3.2, SEC-002, FR-004).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export class AuthenticationError extends HttpException {
   constructor(message = "Autentikasi diperlukan") {

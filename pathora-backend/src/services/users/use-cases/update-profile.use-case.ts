@@ -5,9 +5,9 @@
  * Cek konflik email bila email disertakan dalam update.
  */
 
-import { ConflictError } from "@/exceptions/conflict-error.js";
-import type { User } from "@/services/users/repositories/users.repository.js";
-import type { UpdateProfileDto } from "@/services/users/validators/users.schema.js";
+import { ConflictError } from "../../../exceptions/conflict-error";
+import type { User } from "../repositories/users.repository";
+import type { UpdateProfileDto } from "../validators/users.schema";
 
 // ── Dependencies Interface ─────────────────────────────────────────────────────
 

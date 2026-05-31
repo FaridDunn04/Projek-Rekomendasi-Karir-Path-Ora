@@ -12,10 +12,10 @@
  * USE_MOCK_AI=false → HttpAiGateway  (production / staging dengan AI nyata)
  */
 
-import { config } from "@/config";
-import { HttpAiGateway } from "@/services/ai-gateway/ai-gateway.http";
-import { MockAiGateway } from "@/services/ai-gateway/ai-gateway.mock";
-import type { AiGatewayAdapter } from "@/services/ai-gateway/ai-gateway.adapter";
+import { config } from "../../config";
+import { HttpAiGateway } from "./ai-gateway.http";
+import { MockAiGateway } from "./ai-gateway.mock";
+import type { AiGatewayAdapter } from "./ai-gateway.adapter";
 
 /**
  * Membuat instance AI Gateway sesuai konfigurasi environment.

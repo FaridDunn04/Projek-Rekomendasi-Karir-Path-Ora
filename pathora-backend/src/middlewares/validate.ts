@@ -14,7 +14,7 @@
 
 import type { Request, Response, NextFunction } from "express";
 import type { ZodSchema } from "zod";
-import { ClientError } from "@/exceptions/client-error";
+import { ClientError } from "../exceptions/client-error";
 
 type ValidationSource = "body" | "params" | "query";
 

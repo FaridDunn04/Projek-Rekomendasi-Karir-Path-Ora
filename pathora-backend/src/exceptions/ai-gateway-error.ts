@@ -14,7 +14,7 @@
  * lalu error diteruskan ke error handler — tidak pernah crash proses (NFR-009).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export type AiErrorType = "timeout" | "upstream_error" | "invalid_response";
 

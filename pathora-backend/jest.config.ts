@@ -11,16 +11,13 @@ const config: Config = {
   preset: "ts-jest",
   testEnvironment: "node",
 
-  // Resolve path alias @/* → src/*
-  // Dua aturan:
-  //  1. Strip ekstensi .js  → import '@/foo.js'  menjadi src/foo
-  //  2. Tanpa ekstensi      → import '@/foo'     menjadi src/foo
-  // ts-jest akan mencari src/foo.ts secara otomatis
+  // No path aliases needed - all imports use relative paths
   moduleNameMapper: {
-    // Mock nanoid (ESM-only v5) dengan implementasi CJS sederhana
+    // Mock nanoid (ESM-only v5) with a simple CJS implementation
     "^nanoid$": "<rootDir>/tests/__mocks__/nanoid.ts",
-    "^@/(.*)\\.js$": "<rootDir>/src/$1",
-    "^@/(.*)$": "<rootDir>/src/$1",
+    // Strip .js extension: source files use .js in imports (NodeNext style)
+    // but Jest/ts-jest runs in CommonJS and resolves .ts files directly
+    "^(\\.\\.?/.*)\\.js$": "$1",
   },
 
   // Ekstensi file yang dikenali — urutan penting: .ts lebih dulu

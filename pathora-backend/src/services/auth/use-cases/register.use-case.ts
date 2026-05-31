@@ -5,12 +5,9 @@
  * Menggunakan dependency injection agar mudah di-test.
  */
 
-import { ConflictError } from "@/exceptions/conflict-error.js";
-import type {
-  User,
-  CreateUserDto,
-} from "@/services/auth/repositories/auth.repository.js";
-import type { RegisterDto } from "@/services/auth/validators/auth.schema.js";
+import { ConflictError } from "../../../exceptions/conflict-error";
+import type { User, CreateUserDto } from "../repositories/auth.repository";
+import type { RegisterDto } from "../validators/auth.schema";
 
 // ── Dependencies Interface ─────────────────────────────────────────────────────
 

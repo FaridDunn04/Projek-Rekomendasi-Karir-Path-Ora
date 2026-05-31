@@ -8,14 +8,14 @@
 import {
   RegisterSchema,
   LoginSchema,
-} from "@/services/auth/validators/auth.schema";
-import { UpdateProfileSchema } from "@/services/users/validators/users.schema";
+} from "../../src/services/auth/validators/auth.schema";
+import { UpdateProfileSchema } from "../../src/services/users/validators/users.schema";
 import {
   UploadCvTextSchema,
   CvIdParamSchema,
-} from "@/services/cvs/validators/cvs.schema";
-import { AnalysisIdParamSchema } from "@/services/analyses/validators/analyses.schema";
-import { AiResponseSchema } from "@/services/ai-gateway/ai-response.schema";
+} from "../../src/services/cvs/validators/cvs.schema";
+import { AnalysisIdParamSchema } from "../../src/services/analyses/validators/analyses.schema";
+import { AiResponseSchema } from "../../src/services/ai-gateway/ai-response.schema";
 
 // ── RegisterSchema ─────────────────────────────────────────────────────────────
 

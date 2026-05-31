@@ -19,8 +19,8 @@
 
 import rateLimit, { type Options } from "express-rate-limit";
 import type { Request, Response } from "express";
-import { config } from "@/config";
-import { response } from "@/utils/response";
+import { config } from "../config";
+import { response } from "../utils/response";
 
 // ── Handler 429 ────────────────────────────────────────────────────────────────
 

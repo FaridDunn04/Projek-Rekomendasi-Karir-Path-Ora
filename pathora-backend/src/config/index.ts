@@ -12,6 +12,10 @@
  */
 
 import { z } from "zod";
+import dotenv from "dotenv";
+
+// Muat .env sebelum validasi (hanya di non-production; production pakai env vars platform)
+dotenv.config();
 
 // ── Schema Validasi ────────────────────────────────────────────────────────────
 

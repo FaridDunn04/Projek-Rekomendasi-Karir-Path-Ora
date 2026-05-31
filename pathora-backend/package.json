@@ -4,9 +4,10 @@
   "private": true,
   "description": "Path`Ora Backend RESTful API",
   "main": "dist/server.js",
+  "type": "module",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --project tsconfig.src.json src/server.ts",
-    "build": "tsc --project tsconfig.src.json",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "test": "jest --runInBand",

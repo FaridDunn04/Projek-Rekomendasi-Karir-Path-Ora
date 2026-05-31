@@ -6,10 +6,10 @@
  * Menerapkan aturan filtering yang sama dengan get-analysis.use-case.ts.
  */
 
-import { NotFoundError } from "@/exceptions/not-found-error.js";
-import { AuthorizationError } from "@/exceptions/authorization-error.js";
-import type { Analysis } from "@/services/analyses/repositories/analyses.repository.js";
-import type { AiAnalysisResult } from "@/services/ai-gateway/ai-response.schema.js";
+import { NotFoundError } from "../../../exceptions/not-found-error";
+import { AuthorizationError } from "../../../exceptions/authorization-error";
+import type { Analysis } from "../repositories/analyses.repository";
+import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

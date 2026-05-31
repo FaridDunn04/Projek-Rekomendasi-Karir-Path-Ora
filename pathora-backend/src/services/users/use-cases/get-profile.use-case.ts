@@ -4,8 +4,8 @@
  * Use-case mengambil profil pengguna (FR-022, API-003).
  */
 
-import { NotFoundError } from "@/exceptions/not-found-error.js";
-import type { User } from "@/services/users/repositories/users.repository.js";
+import { NotFoundError } from "../../../exceptions/not-found-error";
+import type { User } from "../repositories/users.repository";
 
 // ── Dependencies Interface ─────────────────────────────────────────────────────
 

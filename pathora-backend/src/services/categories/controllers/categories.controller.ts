@@ -7,14 +7,13 @@
  *  - Pemanggilan pertama → query DB → simpan ke variabel modul
  *  - Pemanggilan berikutnya → langsung kembalikan cache
  *  - TTL: permanen hingga server restart (data kategori bersifat statis)
- *  - Reset cache: restart proses
  *
  * Endpoint ini TIDAK memerlukan autentikasi (guest boleh akses, ACT-01).
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "@/utils/response.js";
-import type { Category } from "@/services/categories/repositories/categories.repository.js";
+import { response } from "../../../utils/response";
+import type { Category } from "../repositories/categories.repository";
 
 // ── Dependency Interface ───────────────────────────────────────────────────────
 
@@ -26,36 +25,33 @@ interface CategoriesControllerDeps {
   categoriesRepo: CategoriesRepo;
 }
 
-// ── Controller ─────────────────────────────────────────────────────────────────
+// ── Factory ────────────────────────────────────────────────────────────────────
 
-export class CategoriesController {
-  private readonly categoriesRepo: CategoriesRepo;
-
+export function createCategoriesController({
+  categoriesRepo,
+}: CategoriesControllerDeps) {
   // Cache in-memory — null berarti belum di-load (§11.2)
-  private cache: Category[] | null = null;
-
-  constructor({ categoriesRepo }: CategoriesControllerDeps) {
-    this.categoriesRepo = categoriesRepo;
-    this.getAll = this.getAll.bind(this);
-  }
+  let cache: Category[] | null = null;
 
   /**
    * GET /categories
    * Mengembalikan seluruh kategori karir (200).
    * Menggunakan cache in-memory — query DB hanya sekali per siklus hidup server.
    */
-  async getAll(
+  async function getAll(
     _req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      if (!this.cache) {
-        this.cache = await this.categoriesRepo.findAll();
+      if (!cache) {
+        cache = await categoriesRepo.findAll();
       }
-      res.status(200).json(response.success(this.cache));
+      res.status(200).json(response.success(cache));
     } catch (err) {
       next(err);
     }
   }
+
+  return { getAll };
 }

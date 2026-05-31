@@ -9,7 +9,7 @@
  * Dipetakan ke HTTP 403 Forbidden (SDD §3.2, SEC-003, FR-012).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export class AuthorizationError extends HttpException {
   constructor(message = "Akses ditolak") {

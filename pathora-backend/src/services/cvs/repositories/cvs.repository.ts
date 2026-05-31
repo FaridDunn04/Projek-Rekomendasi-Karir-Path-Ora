@@ -13,8 +13,8 @@
  * findById()   MENYERTAKAN file_data agar dapat diteruskan ke AI saat analyze.
  */
 
-import { query } from "@/config/database.js";
-import type { PaginationParams } from "@/utils/pagination.js";
+import { query } from "../../../config/database";
+import type { PaginationParams } from "../../../utils/pagination";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

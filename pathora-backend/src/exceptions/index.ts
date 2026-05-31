@@ -8,12 +8,12 @@
  * Urutan export: base → HTTP 4xx → HTTP 5xx/gateway
  */
 
-export { HttpException } from "@/exceptions/base-error";
-export { AuthenticationError } from "@/exceptions/authentication-error";
-export { AuthorizationError } from "@/exceptions/authorization-error";
-export { NotFoundError } from "@/exceptions/not-found-error";
-export { ClientError } from "@/exceptions/client-error";
-export { ConflictError } from "@/exceptions/conflict-error";
-export { InvariantError } from "@/exceptions/invariant-error";
-export { AiGatewayError } from "@/exceptions/ai-gateway-error";
-export type { AiErrorType } from "@/exceptions/ai-gateway-error";
+export { HttpException } from "./base-error";
+export { AuthenticationError } from "./authentication-error";
+export { AuthorizationError } from "./authorization-error";
+export { NotFoundError } from "./not-found-error";
+export { ClientError } from "./client-error";
+export { ConflictError } from "./conflict-error";
+export { InvariantError } from "./invariant-error";
+export { AiGatewayError } from "./ai-gateway-error";
+export type { AiErrorType } from "./ai-gateway-error";

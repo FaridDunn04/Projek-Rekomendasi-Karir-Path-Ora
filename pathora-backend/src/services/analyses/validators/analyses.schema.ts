@@ -12,7 +12,7 @@ import { z } from "zod";
  * Validasi path parameter :analysisId — harus UUID valid (VAL-006).
  */
 export const AnalysisIdParamSchema = z.object({
-  analysisId: z.string().uuid("analysisId harus berupa UUID yang valid"),
+  analysisId: z.uuid("analysisId harus berupa UUID yang valid"),
 });
 
 export type AnalysisIdParam = z.infer<typeof AnalysisIdParamSchema>;

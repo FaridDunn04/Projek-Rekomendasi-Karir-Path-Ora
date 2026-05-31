@@ -10,30 +10,37 @@
  * - test        : level 'silent' agar tidak mengotori output test runner
  */
 
-import pino from 'pino';
-import { config } from '@/config';
+import pino from "pino";
+import { config } from "./index.js";
 
-// ── Transport (pretty-print hanya di development) ─────────────────────────────
+// ── Transport (pretty-print hanya di development jika pino-pretty tersedia) ───
 
-const transport =
-  config.NODE_ENV === 'development'
-    ? pino.transport({
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:HH:MM:ss.l',
-          ignore: 'pid,hostname',
-          messageFormat: '{msg}',
-        },
-      })
-    : undefined;
+let transport: ReturnType<typeof pino.transport> | undefined;
+
+if (config.NODE_ENV === "development") {
+  try {
+    // pino-pretty opsional — bila tidak terinstall, fallback ke JSON
+    require.resolve("pino-pretty");
+    transport = pino.transport({
+      target: "pino-pretty",
+      options: {
+        colorize: true,
+        translateTime: "SYS:HH:MM:ss.l",
+        ignore: "pid,hostname",
+        messageFormat: "{msg}",
+      },
+    });
+  } catch {
+    // pino-pretty tidak tersedia, gunakan JSON output biasa
+  }
+}
 
 // ── Logger Instance ────────────────────────────────────────────────────────────
 
 export const logger = pino(
   {
     // Level diambil dari config; test menggunakan 'silent'
-    level: config.IS_TEST ? 'silent' : config.LOG_LEVEL,
+    level: config.IS_TEST ? "silent" : config.LOG_LEVEL,
 
     // Serializer standar untuk Error object
     serializers: {
@@ -52,17 +59,17 @@ export const logger = pino(
     // Redact field sensitif agar tidak masuk log (SEC-001, SEC-002)
     redact: {
       paths: [
-        'password',
-        'password_hash',
-        'token',
-        'authorization',
-        'req.headers.authorization',
-        'body.password',
-        '*.password',
-        '*.password_hash',
-        '*.token',
+        "password",
+        "password_hash",
+        "token",
+        "authorization",
+        "req.headers.authorization",
+        "body.password",
+        "*.password",
+        "*.password_hash",
+        "*.token",
       ],
-      censor: '[REDACTED]',
+      censor: "[REDACTED]",
     },
   },
   transport,

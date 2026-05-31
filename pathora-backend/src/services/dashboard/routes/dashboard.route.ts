@@ -2,33 +2,26 @@
  * services/dashboard/routes/dashboard.route.ts
  *
  * Routing untuk Dashboard Utama (API-005, SDD §3.7.5).
- *
- * Routes:
- *   GET /dashboard/me → data dashboard user yang sedang login
  */
 
 import { Router } from "express";
-import { auth } from "@/middlewares/auth.js";
-import { dashboardRepository } from "@/services/dashboard/repositories/dashboard.repository.js";
-import { createGetDashboardUseCase } from "@/services/dashboard/use-cases/get-dashboard.use-case.js";
-import { DashboardController } from "@/services/dashboard/controllers/dashboard.controller.js";
+import { auth } from "../../../middlewares/auth";
+import { dashboardRepository } from "../repositories/dashboard.repository";
+import { createGetDashboardUseCase } from "../use-cases/get-dashboard.use-case";
+import { createDashboardController } from "../controllers/dashboard.controller";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 
 const getDashboardUseCase = createGetDashboardUseCase({
   dashboardRepo: dashboardRepository,
 });
-
-const controller = new DashboardController({ getDashboardUseCase });
+const { getMyDashboard } = createDashboardController({ getDashboardUseCase });
 
 // ── Router ─────────────────────────────────────────────────────────────────────
 
 const router = Router();
 
-/**
- * GET /dashboard/me
- * Mengembalikan lastAnalysis + recentHistory untuk Dashboard Utama.
- */
-router.get("/me", auth, controller.getMyDashboard);
+/** GET /dashboard/me */
+router.get("/me", auth, getMyDashboard);
 
 export default router;

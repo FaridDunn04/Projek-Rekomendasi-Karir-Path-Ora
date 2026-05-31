@@ -13,7 +13,7 @@
  * meneruskan buffer apa adanya.
  */
 
-import type { AiAnalysisResult } from "@/services/ai-gateway/ai-response.schema";
+import type { AiAnalysisResult } from "./ai-response.schema";
 
 // ── CvSource ───────────────────────────────────────────────────────────────────
 

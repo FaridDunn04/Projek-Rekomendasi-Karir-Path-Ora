@@ -5,10 +5,10 @@
  * Menggunakan mock repository & password manager — tidak menyentuh DB.
  */
 
-import { createRegisterUseCase } from "@/services/auth/use-cases/register.use-case";
-import { createLoginUseCase } from "@/services/auth/use-cases/login.use-case";
-import { ConflictError } from "@/exceptions/conflict-error";
-import { AuthenticationError } from "@/exceptions/authentication-error";
+import { createRegisterUseCase } from "../../src/services/auth/use-cases/register.use-case";
+import { createLoginUseCase } from "../../src/services/auth/use-cases/login.use-case";
+import { ConflictError } from "../../src/exceptions/conflict-error";
+import { AuthenticationError } from "../../src/exceptions/authentication-error";
 
 // ── Fixtures ───────────────────────────────────────────────────────────────────
 

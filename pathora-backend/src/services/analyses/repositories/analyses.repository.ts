@@ -8,9 +8,9 @@
  * findById()   mengembalikan result JSONB penuh untuk halaman Analysis.
  */
 
-import { query } from "@/config/database.js";
-import type { PaginationParams } from "@/utils/pagination.js";
-import type { AiAnalysisResult } from "@/services/ai-gateway/ai-response.schema.js";
+import { query } from "../../../config/database";
+import type { PaginationParams } from "../../../utils/pagination";
+import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

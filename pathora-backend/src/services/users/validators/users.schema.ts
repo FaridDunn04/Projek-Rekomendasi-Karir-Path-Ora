@@ -11,7 +11,7 @@ import { z } from "zod";
 export const UpdateProfileSchema = z
   .object({
     full_name: z.string().min(2).max(100).optional(),
-    email: z.string().email().optional(),
+    email: z.email().optional(),
   })
   .refine((d) => d.full_name !== undefined || d.email !== undefined, {
     message: "Minimal satu field harus diisi",

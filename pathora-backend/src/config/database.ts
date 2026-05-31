@@ -10,9 +10,9 @@
  * Seluruh repository mengimpor `query` dari sini (SEC-006, NFR-011).
  */
 
-import { Pool, type QueryResultRow } from 'pg';
-import { config } from '@/config';
-import { logger } from '@/config/logger';
+import { Pool, type QueryResultRow } from "pg";
+import { config } from "./index.js";
+import { logger } from "./logger.js";
 
 // ── Connection Pool ────────────────────────────────────────────────────────────
 
@@ -27,8 +27,8 @@ export const pool = new Pool({
 });
 
 // Log error pool-level agar tidak silent
-pool.on('error', (err) => {
-  logger.error({ err }, 'db.pool.error — koneksi idle mengalami error');
+pool.on("error", (err) => {
+  logger.error({ err }, "db.pool.error — koneksi idle mengalami error");
 });
 
 // ── Query Wrapper ──────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
         durationMs: Date.now() - start,
         rowCount: result.rowCount,
       },
-      'db.query.ok',
+      "db.query.ok",
     );
 
     return result;
@@ -68,7 +68,7 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
         durationMs: Date.now() - start,
         err,
       },
-      'db.query.error',
+      "db.query.error",
     );
     throw err;
   }
@@ -84,8 +84,8 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
 export async function testConnection(): Promise<void> {
   const client = await pool.connect();
   try {
-    await client.query('SELECT 1');
-    logger.info('db.connection — PostgreSQL terhubung');
+    await client.query("SELECT 1");
+    logger.info("db.connection — PostgreSQL terhubung");
   } finally {
     client.release();
   }
@@ -97,5 +97,5 @@ export async function testConnection(): Promise<void> {
  */
 export async function closePool(): Promise<void> {
   await pool.end();
-  logger.info('db.pool — koneksi ditutup');
+  logger.info("db.pool — koneksi ditutup");
 }

@@ -7,7 +7,7 @@
  * Dipetakan ke HTTP 409 Conflict (SDD §3.2, FR-001, FR-022).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export class ConflictError extends HttpException {
   constructor(message = "Konflik dengan data yang sudah ada") {

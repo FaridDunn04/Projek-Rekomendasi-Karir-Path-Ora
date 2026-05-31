@@ -15,8 +15,8 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { tokenManager, type TokenPayload } from "@/security/token-manager";
-import { AuthenticationError } from "@/exceptions/authentication-error";
+import { tokenManager, type TokenPayload } from "../security/token-manager.js";
+import { AuthenticationError } from "../exceptions/authentication-error.js";
 
 // ── Augment Express Request ────────────────────────────────────────────────────
 // Tambahkan properti `user` ke tipe Request agar TypeScript mengenalinya

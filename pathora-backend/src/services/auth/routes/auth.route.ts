@@ -2,22 +2,19 @@
  * services/auth/routes/auth.route.ts
  *
  * Routing untuk domain auth (API-001, API-002).
- * Dependency wiring dilakukan di sini: repo → use-cases → controller → routes.
+ * Dependency wiring: repo → use-cases → controller → routes.
  */
 
 import { Router } from "express";
-import { strictLimiter } from "@/middlewares/rate-limit.js";
-import { validate } from "@/middlewares/validate.js";
-import { authRepository } from "@/services/auth/repositories/auth.repository.js";
-import {
-  RegisterSchema,
-  LoginSchema,
-} from "@/services/auth/validators/auth.schema.js";
-import { createRegisterUseCase } from "@/services/auth/use-cases/register.use-case.js";
-import { createLoginUseCase } from "@/services/auth/use-cases/login.use-case.js";
-import { AuthController } from "@/services/auth/controllers/auth.controller.js";
-import { passwordManager } from "@/security/password-manager.js";
-import { tokenManager } from "@/security/token-manager.js";
+import { strictLimiter } from "../../../middlewares/rate-limit";
+import { validate } from "../../../middlewares/validate";
+import { authRepository } from "../repositories/auth.repository";
+import { RegisterSchema, LoginSchema } from "../validators/auth.schema";
+import { createRegisterUseCase } from "../use-cases/register.use-case";
+import { createLoginUseCase } from "../use-cases/login.use-case";
+import { createAuthController } from "../controllers/auth.controller";
+import { passwordManager } from "../../../security/password-manager";
+import { tokenManager } from "../../../security/token-manager";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 
@@ -30,32 +27,24 @@ const loginUseCase = createLoginUseCase({
   passwordManager,
   tokenManager,
 });
-const controller = new AuthController({ registerUseCase, loginUseCase });
+const { register, login } = createAuthController({
+  registerUseCase,
+  loginUseCase,
+});
 
 // ── Router ─────────────────────────────────────────────────────────────────────
 
 const router = Router();
 
-/**
- * POST /auth/register
- * Mendaftarkan pengguna baru.
- */
+/** POST /auth/register */
 router.post(
   "/register",
   strictLimiter,
   validate(RegisterSchema, "body"),
-  controller.register,
+  register,
 );
 
-/**
- * POST /auth/login
- * Login dengan email dan password.
- */
-router.post(
-  "/login",
-  strictLimiter,
-  validate(LoginSchema, "body"),
-  controller.login,
-);
+/** POST /auth/login */
+router.post("/login", strictLimiter, validate(LoginSchema, "body"), login);
 
 export default router;

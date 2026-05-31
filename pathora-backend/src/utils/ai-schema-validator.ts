@@ -16,8 +16,9 @@
 import {
   AiResponseSchema,
   type AiAnalysisResult,
-} from "@/services/ai-gateway/ai-response.schema";
-import { AiGatewayError } from "@/exceptions/ai-gateway-error";
+} from "../services/ai-gateway/ai-response.schema";
+import { AiGatewayError } from "../exceptions/ai-gateway-error";
+import { z } from "zod";
 
 /**
  * Memvalidasi data mentah dari layanan AI terhadap AiResponseSchema.
@@ -33,7 +34,7 @@ export function validateAiResponse(data: unknown): AiAnalysisResult {
     throw new AiGatewayError(
       "invalid_response",
       "Respons AI tidak sesuai schema yang diharapkan",
-      parsed.error.flatten(),
+      z.treeifyError(parsed.error),
     );
   }
 

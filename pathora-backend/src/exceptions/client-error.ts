@@ -11,7 +11,7 @@
  * Dipetakan ke HTTP 422 Unprocessable Entity (SDD §3.2, SEC-005, VAL-001..006).
  */
 
-import { HttpException } from "@/exceptions/base-error";
+import { HttpException } from "./base-error";
 
 export class ClientError extends HttpException {
   constructor(message = "Input tidak valid", details?: unknown) {
