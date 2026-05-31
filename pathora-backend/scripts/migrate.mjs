@@ -8,7 +8,7 @@ import { runner } from "node-pg-migrate";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, "../.env.test") });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
