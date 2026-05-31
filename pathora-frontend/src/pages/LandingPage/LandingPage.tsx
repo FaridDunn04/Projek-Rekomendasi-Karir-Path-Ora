@@ -11,6 +11,10 @@ export default function LandingPage() {
                     <Link to="/register" className="text-sm text-white hover:text-purple-200 transition">
                         Register
                     </Link>
+                    
+                    <Link to="/dashboard" className="text-sm text-white hover:text-purple-200 transition">
+                        Dashboard
+                    </Link>
                 </nav>
             </header>
             <div className="max-w-md text-center">
