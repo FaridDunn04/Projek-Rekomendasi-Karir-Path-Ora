@@ -1,0 +1,1105 @@
+{
+  "info": {
+    "_postman_id": "pathora-backend-collection-v1",
+    "name": "Path`Ora Backend API",
+    "description": "Koleksi endpoint lengkap Path`Ora Backend API (F1–F7).\n\nBase URL: {{baseUrl}}/api/v1\n\nAlur pengujian yang disarankan:\n1. Auth → Register\n2. Auth → Login (token tersimpan otomatis)\n3. CVs → Upload Text / Upload File\n4. CVs → Trigger Analysis\n5. Analyses → Get Analysis by ID\n6. Dashboard → Get My Dashboard\n7. Users → Get Profile / Update Profile",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{authToken}}", "type": "string" }]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level pre-request: pastikan baseUrl tidak trailing slash",
+          "const base = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl');",
+          "if (base && base.endsWith('/')) {",
+          "  pm.collectionVariables.set('baseUrl', base.slice(0, -1));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "description": "Registrasi, login. Token JWT disimpan otomatis ke environment variable `authToken` setelah login berhasil.",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Generate email unik agar tidak conflict saat dijalankan berulang",
+                  "const ts = Date.now();",
+                  "pm.environment.set('registerEmail', `testuser_${ts}@pathora.dev`);",
+                  "pm.environment.set('registerPassword', 'Password123!');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Response shape: data/error/meta', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.all.keys('data', 'error', 'meta');",
+                  "  pm.expect(body.error).to.be.null;",
+                  "});",
+                  "pm.test('data berisi id, email, full_name, created_at', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.all.keys('id', 'email', 'full_name', 'created_at');",
+                  "});",
+                  "pm.test('password_hash TIDAK ada di response (SEC-001)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.not.have.property('password_hash');",
+                  "  pm.expect(data).to.not.have.property('password');",
+                  "});",
+                  "// Simpan userId untuk dipakai test lain",
+                  "const { data } = pm.response.json();",
+                  "if (data && data.id) pm.environment.set('registeredUserId', data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Rani Pratiwi\",\n  \"email\": \"{{registerEmail}}\",\n  \"password\": \"{{registerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register — Validasi Gagal (email invalid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('error.message ada', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error).to.not.be.null;",
+                  "  pm.expect(body.error.message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"A\",\n  \"email\": \"bukan-email\",\n  \"password\": \"short\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Gunakan credential dari env; fallback ke default test account",
+                  "if (!pm.environment.get('loginEmail')) {",
+                  "  pm.environment.set('loginEmail', pm.environment.get('registerEmail') || 'test@pathora.dev');",
+                  "}",
+                  "if (!pm.environment.get('loginPassword')) {",
+                  "  pm.environment.set('loginPassword', pm.environment.get('registerPassword') || 'Password123!');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response shape: data/error/meta', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.all.keys('data', 'error', 'meta');",
+                  "  pm.expect(body.error).to.be.null;",
+                  "});",
+                  "pm.test('data berisi token dan user', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.property('token').that.is.a('string');",
+                  "  pm.expect(data).to.have.property('user');",
+                  "  pm.expect(data.user).to.have.all.keys('id', 'email', 'full_name', 'created_at');",
+                  "});",
+                  "pm.test('token adalah JWT (3 segmen base64)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data.token.split('.').length).to.equal(3);",
+                  "});",
+                  "pm.test('password_hash TIDAK ada di user (SEC-001)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data.user).to.not.have.property('password_hash');",
+                  "});",
+                  "// ✅ Simpan token & userId ke environment untuk request berikutnya",
+                  "const { data } = pm.response.json();",
+                  "if (data && data.token) {",
+                  "  pm.environment.set('authToken', data.token);",
+                  "  pm.environment.set('currentUserId', data.user.id);",
+                  "  console.log('✅ authToken tersimpan:', data.token.substring(0, 30) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login — Kredensial Salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Pesan error generik (tidak menyebut field spesifik)', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.message).to.equal('Email atau password salah');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tidakada@pathora.dev\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "👤 Users",
+      "description": "Profil pengguna. Memerlukan authToken.",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('data berisi profil user', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.all.keys('id', 'email', 'full_name', 'created_at');",
+                  "});",
+                  "pm.test('password_hash tidak bocor (SEC-001)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.not.have.property('password_hash');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('full_name terupdate', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data.full_name).to.equal('Rani Pratiwi Updated');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Rani Pratiwi Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile — Body Kosong (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422 — minimal satu field wajib diisi', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile — Tanpa Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📄 CVs",
+      "description": "Upload, list, get, delete CV. cvId tersimpan otomatis setelah upload berhasil.",
+      "item": [
+        {
+          "name": "Upload CV — Text",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pastikan raw_text minimal 100 karakter (VAL-003)",
+                  "const sampleText = 'Saya adalah seorang software engineer dengan pengalaman 3 tahun di bidang pengembangan web menggunakan Node.js, TypeScript, React, dan PostgreSQL. Saya memiliki keahlian dalam membangun RESTful API, desain database relasional, serta implementasi CI/CD pipeline. Saya juga berpengalaman dalam penggunaan Docker dan Kubernetes untuk deployment aplikasi skala besar.';",
+                  "pm.environment.set('sampleCvText', sampleText);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Response shape valid', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error).to.be.null;",
+                  "  pm.expect(body.data).to.have.property('id');",
+                  "});",
+                  "pm.test('source_type adalah text', () => {",
+                  "  pm.expect(pm.response.json().data.source_type).to.equal('text');",
+                  "});",
+                  "// ✅ Simpan cvId untuk request berikutnya",
+                  "const { data } = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.environment.set('cvId', data.id);",
+                  "  console.log('✅ cvId tersimpan:', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"text\",\n  \"raw_text\": \"{{sampleCvText}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs"]
+            }
+          }
+        },
+        {
+          "name": "Upload CV — Text Terlalu Pendek (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422 — raw_text < 100 karakter', () => pm.response.to.have.status(422));",
+                  "pm.test('error.details ada', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error).to.not.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_type\": \"text\",\n  \"raw_text\": \"Terlalu pendek\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs"]
+            }
+          }
+        },
+        {
+          "name": "Upload CV — File (PDF/DOCX)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pastikan file dipilih manual di tab Body → form-data → key 'file'",
+                  "console.log('ℹ️  Pilih file PDF atau DOCX di tab Body → form-data → key: file');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('source_type adalah file', () => {",
+                  "  pm.expect(pm.response.json().data.source_type).to.equal('file');",
+                  "});",
+                  "const { data } = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.environment.set('cvIdFile', data.id);",
+                  "  console.log('✅ cvIdFile tersimpan:', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Pilih file PDF atau DOCX (maks 5MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs"]
+            }
+          }
+        },
+
+        {
+          "name": "List CVs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('data adalah array', () => {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});",
+                  "pm.test('meta berisi limit dan offset', () => {",
+                  "  const { meta } = pm.response.json();",
+                  "  pm.expect(meta).to.have.property('limit');",
+                  "  pm.expect(meta).to.have.property('offset');",
+                  "});",
+                  "pm.test('file_data TIDAK ada di list (efisiensi NFR-011)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  if (data.length > 0) {",
+                  "    pm.expect(data[0]).to.not.have.property('file_data');",
+                  "    pm.expect(data[0]).to.not.have.property('raw_text');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs?limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs"],
+              "query": [
+                { "key": "limit", "value": "10" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get CV by ID",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cvId = pm.environment.get('cvId');",
+                  "if (!cvId) { console.warn('⚠️  cvId belum tersimpan. Jalankan Upload CV — Text terlebih dahulu.'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('id sesuai cvId di environment', () => {",
+                  "  pm.expect(pm.response.json().data.id).to.equal(pm.environment.get('cvId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/{{cvId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs", "{{cvId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get CV — ID Tidak Valid (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422 — cvId bukan UUID', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/bukan-uuid",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs", "bukan-uuid"]
+            }
+          }
+        },
+        {
+          "name": "Delete CV by ID",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Gunakan cvIdToDelete jika ada, fallback ke cvId",
+                  "const id = pm.environment.get('cvIdToDelete') || pm.environment.get('cvId');",
+                  "pm.environment.set('_deleteCvId', id);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 atau 204', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/{{_deleteCvId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs", "{{_deleteCvId}}"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🤖 Analyses",
+      "description": "Trigger analisis CV, ambil hasil analisis. analysisId tersimpan otomatis setelah trigger berhasil.",
+      "item": [
+        {
+          "name": "Trigger Analysis",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cvId = pm.environment.get('cvId');",
+                  "if (!cvId) {",
+                  "  console.warn('⚠️  cvId belum tersimpan. Jalankan Upload CV — Text terlebih dahulu.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response shape valid', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error).to.be.null;",
+                  "  pm.expect(body.data).to.be.an('object');",
+                  "});",
+                  "pm.test('data berisi field kontrak AI', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.property('analysisId');",
+                  "  pm.expect(data).to.have.property('predicted_category').that.is.a('string');",
+                  "  pm.expect(data).to.have.property('confidence').that.is.a('number');",
+                  "  pm.expect(data).to.have.property('top_5_predictions').that.is.an('array');",
+                  "  pm.expect(data).to.have.property('extracted_skills').that.is.an('array');",
+                  "  pm.expect(data).to.have.property('career_recommendations').that.is.an('array');",
+                  "});",
+                  "pm.test('confidence antara 0 dan 1', () => {",
+                  "  const { confidence } = pm.response.json().data;",
+                  "  pm.expect(confidence).to.be.at.least(0).and.at.most(1);",
+                  "});",
+                  "pm.test('top_5_predictions — semua confidence > 0.05 (FR-016)', () => {",
+                  "  const { top_5_predictions } = pm.response.json().data;",
+                  "  top_5_predictions.forEach(p => {",
+                  "    pm.expect(p.confidence).to.be.above(0.05);",
+                  "  });",
+                  "});",
+                  "pm.test('career_recommendations — semua match_score > 0.3 (FR-020)', () => {",
+                  "  const { career_recommendations } = pm.response.json().data;",
+                  "  career_recommendations.forEach(r => {",
+                  "    pm.expect(r.match_score).to.be.above(0.3);",
+                  "  });",
+                  "});",
+                  "// ✅ Simpan analysisId",
+                  "const { data } = pm.response.json();",
+                  "if (data && data.analysisId) {",
+                  "  pm.environment.set('analysisId', data.analysisId);",
+                  "  console.log('✅ analysisId tersimpan:', data.analysisId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/{{cvId}}/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs", "{{cvId}}", "analyze"]
+            }
+          }
+        },
+        {
+          "name": "Get Latest Analysis by CV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('data berisi analisis terbaru', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.property('id');",
+                  "  pm.expect(data).to.have.property('status');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/{{cvId}}/analysis",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs", "{{cvId}}", "analysis"]
+            }
+          }
+        },
+        {
+          "name": "List All Analyses",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('data adalah array', () => {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});",
+                  "pm.test('meta berisi pagination', () => {",
+                  "  const { meta } = pm.response.json();",
+                  "  pm.expect(meta).to.have.property('limit');",
+                  "  pm.expect(meta).to.have.property('offset');",
+                  "});",
+                  "pm.test('result JSONB penuh tidak ada di list (efisiensi NFR-011)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  if (data.length > 0) {",
+                  "    pm.expect(data[0]).to.not.have.property('result');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/analyses?limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "analyses"],
+              "query": [
+                { "key": "limit", "value": "10" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Analysis by ID",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const analysisId = pm.environment.get('analysisId');",
+                  "if (!analysisId) { console.warn('⚠️  analysisId belum tersimpan. Jalankan Trigger Analysis terlebih dahulu.'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('id sesuai analysisId di environment', () => {",
+                  "  pm.expect(pm.response.json().data.id).to.equal(pm.environment.get('analysisId'));",
+                  "});",
+                  "pm.test('matched_skills terurut descending by similarity (FR-017)', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  if (data.extracted_skills && data.extracted_skills.length > 0) {",
+                  "    data.extracted_skills.forEach(skill => {",
+                  "      const sims = skill.matched_skills.map(s => s.similarity);",
+                  "      for (let i = 1; i < sims.length; i++) {",
+                  "        pm.expect(sims[i-1]).to.be.at.least(sims[i]);",
+                  "      }",
+                  "    });",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/analyses/{{analysisId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "analyses", "{{analysisId}}"]
+            }
+          }
+        },
+        {
+          "name": "Trigger Analysis — CV Tidak Ditemukan (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/00000000-0000-0000-0000-000000000000/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "cvs",
+                "00000000-0000-0000-0000-000000000000",
+                "analyze"
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📊 Dashboard",
+      "description": "Dashboard utama pengguna. Memerlukan authToken.",
+      "item": [
+        {
+          "name": "Get My Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('data berisi lastAnalysis dan recentHistory', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.property('lastAnalysis');",
+                  "  pm.expect(data).to.have.property('recentHistory').that.is.an('array');",
+                  "});",
+                  "pm.test('lastAnalysis null atau berisi field summary (FR-005)', () => {",
+                  "  const { lastAnalysis } = pm.response.json().data;",
+                  "  if (lastAnalysis !== null) {",
+                  "    pm.expect(lastAnalysis).to.have.property('predicted_category');",
+                  "    pm.expect(lastAnalysis).to.have.property('confidence');",
+                  "    pm.expect(lastAnalysis).to.have.property('analyzed_at');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "dashboard", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Categories",
+      "description": "Referensi kategori karir. Tidak memerlukan autentikasi.",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('data adalah array kategori', () => {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});",
+                  "pm.test('setiap kategori memiliki code dan display_name', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  if (data.length > 0) {",
+                  "    pm.expect(data[0]).to.have.property('code');",
+                  "    pm.expect(data[0]).to.have.property('display_name');",
+                  "  }",
+                  "});",
+                  "pm.test('Tidak memerlukan token (guest access ACT-01)', () => {",
+                  "  pm.expect(pm.response.code).to.not.equal(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "❤️ Health",
+      "description": "Health check endpoint. Tidak memerlukan autentikasi.",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK atau 503 Degraded', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});",
+                  "pm.test('data berisi status dan db', () => {",
+                  "  const { data } = pm.response.json();",
+                  "  pm.expect(data).to.have.property('status');",
+                  "  pm.expect(data).to.have.property('db');",
+                  "  pm.expect(data).to.have.property('timestamp');",
+                  "});",
+                  "pm.test('DB status ok saat server sehat', () => {",
+                  "  if (pm.response.code === 200) {",
+                  "    pm.expect(pm.response.json().data.db).to.equal('ok');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔒 Security Tests",
+      "description": "Pengujian keamanan: akses tanpa token, akses resource milik user lain, rate limit.",
+      "item": [
+        {
+          "name": "Akses Endpoint Privat Tanpa Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('error.message ada', () => {",
+                  "  pm.expect(pm.response.json().error.message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "dashboard", "me"]
+            }
+          }
+        },
+        {
+          "name": "Akses Endpoint Privat Token Invalid (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "token.tidak.valid",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Akses CV Milik User Lain (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Gunakan UUID valid tapi bukan milik user yang sedang login",
+                  "// Ganti dengan cvId milik user lain jika tersedia di environment",
+                  "const otherId = pm.environment.get('otherUserCvId') || '11111111-1111-1111-1111-111111111111';",
+                  "pm.environment.set('_testOtherCvId', otherId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 atau 404', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([403, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cvs/{{_testOtherCvId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cvs", "{{_testOtherCvId}}"]
+            }
+          }
+        },
+        {
+          "name": "Endpoint Tidak Ada (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('error.message ada', () => {",
+                  "  pm.expect(pm.response.json().error.message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/endpoint-tidak-ada",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "endpoint-tidak-ada"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
