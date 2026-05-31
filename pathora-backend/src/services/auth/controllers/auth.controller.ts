@@ -5,9 +5,9 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "../../../utils/response";
-import type { User } from "../repositories/auth.repository";
-import type { RegisterDto, LoginDto } from "../validators/auth.schema";
+import { response } from "../../../utils/response.js";
+import type { User } from "../repositories/auth.repository.js";
+import type { RegisterDto, LoginDto } from "../validators/auth.schema.js";
 
 // ── Dependency Interfaces ──────────────────────────────────────────────────────
 

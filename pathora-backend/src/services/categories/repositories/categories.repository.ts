@@ -7,7 +7,7 @@
  * agar query DB hanya terjadi sekali selama server hidup (§11.2).
  */
 
-import { query } from "../../../config/database";
+import { query } from "../../../config/database.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

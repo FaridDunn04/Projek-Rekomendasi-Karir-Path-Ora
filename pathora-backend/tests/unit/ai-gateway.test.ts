@@ -6,10 +6,10 @@
  */
 
 import axios from "axios";
-import { HttpAiGateway } from "../../src/services/ai-gateway/ai-gateway.http";
-import { MockAiGateway } from "../../src/services/ai-gateway/ai-gateway.mock";
-import { AiGatewayError } from "../../src/exceptions/ai-gateway-error";
-import type { CvSource } from "../../src/services/ai-gateway/ai-gateway.adapter";
+import { HttpAiGateway } from "../../src/services/ai-gateway/ai-gateway.http.js";
+import { MockAiGateway } from "../../src/services/ai-gateway/ai-gateway.mock.js";
+import { AiGatewayError } from "../../src/exceptions/ai-gateway-error.js";
+import type { CvSource } from "../../src/services/ai-gateway/ai-gateway.adapter.js";
 
 // Mock seluruh modul axios
 jest.mock("axios");

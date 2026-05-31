@@ -6,15 +6,15 @@
  */
 
 import { Router } from "express";
-import { strictLimiter } from "../../../middlewares/rate-limit";
-import { validate } from "../../../middlewares/validate";
-import { authRepository } from "../repositories/auth.repository";
-import { RegisterSchema, LoginSchema } from "../validators/auth.schema";
-import { createRegisterUseCase } from "../use-cases/register.use-case";
-import { createLoginUseCase } from "../use-cases/login.use-case";
-import { createAuthController } from "../controllers/auth.controller";
-import { passwordManager } from "../../../security/password-manager";
-import { tokenManager } from "../../../security/token-manager";
+import { strictLimiter } from "../../../middlewares/rate-limit.js";
+import { validate } from "../../../middlewares/validate.js";
+import { authRepository } from "../repositories/auth.repository.js";
+import { RegisterSchema, LoginSchema } from "../validators/auth.schema.js";
+import { createRegisterUseCase } from "../use-cases/register.use-case.js";
+import { createLoginUseCase } from "../use-cases/login.use-case.js";
+import { createAuthController } from "../controllers/auth.controller.js";
+import { passwordManager } from "../../../security/password-manager.js";
+import { tokenManager } from "../../../security/token-manager.js";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 

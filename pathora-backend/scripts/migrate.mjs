@@ -1,9 +1,14 @@
-"use strict";
+// ESM migration runner — no "use strict" needed
 
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../.env.test") });
+import { fileURLToPath } from "url";
+import path from "path";
+import dotenv from "dotenv";
+import { runner } from "node-pg-migrate";
 
-const { runner } = require("node-pg-migrate");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../.env.test") });
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -18,6 +23,8 @@ const baseOptions = {
   databaseUrl: DATABASE_URL,
   migrationsTable: "pgmigrations",
   dir: migrationsDir,
+  // Migration files are .cjs (CommonJS) to avoid ESM conflict with "type":"module"
+  ignorePattern: "^(?!.*\.cjs$).*",
   verbose: true,
 };
 

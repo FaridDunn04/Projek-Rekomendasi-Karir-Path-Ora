@@ -9,7 +9,7 @@
  * Validasi MIME & ukuran sudah ditangani oleh middlewares/upload.ts.
  */
 
-import type { Cv, CreateCvFileDto } from "../repositories/cvs.repository";
+import type { Cv, CreateCvFileDto } from "../repositories/cvs.repository.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

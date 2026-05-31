@@ -20,11 +20,11 @@ import express, {
   type NextFunction,
 } from "express";
 import { nanoid } from "nanoid";
-import { corsMiddleware } from "./middlewares/cors";
-import { globalLimiter } from "./middlewares/rate-limit";
-import { errorHandler } from "./middlewares/error";
-import { response } from "./utils/response";
-import apiRouter from "./routes/index";
+import { corsMiddleware } from "./middlewares/cors.js";
+import { globalLimiter } from "./middlewares/rate-limit.js";
+import { errorHandler } from "./middlewares/error.js";
+import { response } from "./utils/response.js";
+import apiRouter from "./routes/index.js";
 
 // ── App Factory ────────────────────────────────────────────────────────────────
 

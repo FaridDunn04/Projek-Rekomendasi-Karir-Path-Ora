@@ -6,27 +6,25 @@
  */
 
 import { Router } from "express";
-import { auth } from "../../../middlewares/auth";
-import { validate } from "../../../middlewares/validate";
-import { strictLimiter } from "../../../middlewares/rate-limit";
-import { uploadCvFile } from "../../../middlewares/upload";
-import { cvsRepository } from "../repositories/cvs.repository";
-import { analysesRepository } from "../../analyses/repositories/analyses.repository";
-import {
-  CvIdParamSchema,
-} from "../validators/cvs.schema";
-import { createUploadCvTextUseCase } from "../use-cases/upload-cv-text.use-case";
-import { createUploadCvFileUseCase } from "../use-cases/upload-cv-file.use-case";
-import { createDeleteCvUseCase } from "../use-cases/delete-cv.use-case";
-import { createListCvsUseCase } from "../use-cases/list-cvs.use-case";
-import { createGetCvUseCase } from "../use-cases/get-cv.use-case";
-import { createCvsController } from "../controllers/cvs.controller";
-import { createTriggerAnalysisUseCase } from "../../analyses/use-cases/trigger-analysis.use-case";
-import { createGetLatestByCvUseCase } from "../../analyses/use-cases/get-latest-by-cv.use-case";
-import { createGetAnalysisUseCase } from "../../analyses/use-cases/get-analysis.use-case";
-import { createListAnalysesUseCase } from "../../analyses/use-cases/list-analyses.use-case";
-import { createAnalysesController } from "../../analyses/controllers/analyses.controller";
-import { createAiGateway } from "../../ai-gateway/ai-gateway.factory";
+import { auth } from "../../../middlewares/auth.js";
+import { validate } from "../../../middlewares/validate.js";
+import { strictLimiter } from "../../../middlewares/rate-limit.js";
+import { uploadCvFile } from "../../../middlewares/upload.js";
+import { cvsRepository } from "../repositories/cvs.repository.js";
+import { analysesRepository } from "../../analyses/repositories/analyses.repository.js";
+import { CvIdParamSchema } from "../validators/cvs.schema.js";
+import { createUploadCvTextUseCase } from "../use-cases/upload-cv-text.use-case.js";
+import { createUploadCvFileUseCase } from "../use-cases/upload-cv-file.use-case.js";
+import { createDeleteCvUseCase } from "../use-cases/delete-cv.use-case.js";
+import { createListCvsUseCase } from "../use-cases/list-cvs.use-case.js";
+import { createGetCvUseCase } from "../use-cases/get-cv.use-case.js";
+import { createCvsController } from "../controllers/cvs.controller.js";
+import { createTriggerAnalysisUseCase } from "../../analyses/use-cases/trigger-analysis.use-case.js";
+import { createGetLatestByCvUseCase } from "../../analyses/use-cases/get-latest-by-cv.use-case.js";
+import { createGetAnalysisUseCase } from "../../analyses/use-cases/get-analysis.use-case.js";
+import { createListAnalysesUseCase } from "../../analyses/use-cases/list-analyses.use-case.js";
+import { createAnalysesController } from "../../analyses/controllers/analyses.controller.js";
+import { createAiGateway } from "../../ai-gateway/ai-gateway.factory.js";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 

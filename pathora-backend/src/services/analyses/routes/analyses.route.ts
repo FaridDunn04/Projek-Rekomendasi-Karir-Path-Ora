@@ -6,17 +6,17 @@
  */
 
 import { Router } from "express";
-import { auth } from "../../../middlewares/auth";
-import { validate } from "../../../middlewares/validate";
-import { analysesRepository } from "../repositories/analyses.repository";
-import { cvsRepository } from "../../cvs/repositories/cvs.repository";
-import { AnalysisIdParamSchema } from "../validators/analyses.schema";
-import { createGetAnalysisUseCase } from "../use-cases/get-analysis.use-case";
-import { createListAnalysesUseCase } from "../use-cases/list-analyses.use-case";
-import { createGetLatestByCvUseCase } from "../use-cases/get-latest-by-cv.use-case";
-import { createTriggerAnalysisUseCase } from "../use-cases/trigger-analysis.use-case";
-import { createAiGateway } from "../../ai-gateway/ai-gateway.factory";
-import { createAnalysesController } from "../controllers/analyses.controller";
+import { auth } from "../../../middlewares/auth.js";
+import { validate } from "../../../middlewares/validate.js";
+import { analysesRepository } from "../repositories/analyses.repository.js";
+import { cvsRepository } from "../../cvs/repositories/cvs.repository.js";
+import { AnalysisIdParamSchema } from "../validators/analyses.schema.js";
+import { createGetAnalysisUseCase } from "../use-cases/get-analysis.use-case.js";
+import { createListAnalysesUseCase } from "../use-cases/list-analyses.use-case.js";
+import { createGetLatestByCvUseCase } from "../use-cases/get-latest-by-cv.use-case.js";
+import { createTriggerAnalysisUseCase } from "../use-cases/trigger-analysis.use-case.js";
+import { createAiGateway } from "../../ai-gateway/ai-gateway.factory.js";
+import { createAnalysesController } from "../controllers/analyses.controller.js";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 

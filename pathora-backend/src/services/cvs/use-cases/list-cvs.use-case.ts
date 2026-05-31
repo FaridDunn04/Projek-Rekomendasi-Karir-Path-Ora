@@ -5,11 +5,11 @@
  * Mengembalikan list ringkas tanpa file_data/raw_text (NFR-011).
  */
 
-import type { Cv } from "../repositories/cvs.repository";
+import type { Cv } from "../repositories/cvs.repository.js";
 import type {
   PaginationParams,
   PaginationMeta,
-} from "../../../utils/pagination";
+} from "../../../utils/pagination.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

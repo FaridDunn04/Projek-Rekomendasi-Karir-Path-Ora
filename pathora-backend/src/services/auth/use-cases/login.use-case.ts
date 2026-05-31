@@ -5,9 +5,9 @@
  * Pesan error generik — tidak memberi petunjuk field mana yang salah (SEC-001).
  */
 
-import { AuthenticationError } from "../../../exceptions/authentication-error";
-import type { User, UserWithHash } from "../repositories/auth.repository";
-import type { LoginDto } from "../validators/auth.schema";
+import { AuthenticationError } from "../../../exceptions/authentication-error.js";
+import type { User, UserWithHash } from "../repositories/auth.repository.js";
+import type { LoginDto } from "../validators/auth.schema.js";
 
 // ── Dependencies Interface ─────────────────────────────────────────────────────
 

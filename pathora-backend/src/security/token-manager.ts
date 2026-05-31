@@ -8,7 +8,7 @@
  */
 
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import { config } from "../config";
+import { config } from "../config/index.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

@@ -13,11 +13,11 @@
     "test": "jest --runInBand",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration --runInBand --forceExit",
-    "migrate": "node scripts/migrate.js up",
-    "migrate:up": "node scripts/migrate.js up",
-    "migrate:down": "node scripts/migrate.js down",
-    "migrate:redo": "node scripts/migrate.js redo",
-    "migrate:create": "node scripts/migrate.js create"
+    "migrate": "node scripts/migrate.mjs up",
+    "migrate:up": "node scripts/migrate.mjs up",
+    "migrate:down": "node scripts/migrate.mjs down",
+    "migrate:redo": "node scripts/migrate.mjs redo",
+    "migrate:create": "node scripts/migrate.mjs create"
   },
   "dependencies": {
     "axios": "^1.16.1",

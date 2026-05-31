@@ -10,7 +10,7 @@
  * Kedua query hanya mengembalikan kolom summary — tanpa result JSONB (NFR-011).
  */
 
-import { query } from "../../../config/database";
+import { query } from "../../../config/database.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

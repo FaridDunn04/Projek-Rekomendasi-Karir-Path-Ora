@@ -6,9 +6,9 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "../../../utils/response";
-import type { User } from "../repositories/users.repository";
-import type { UpdateProfileDto } from "../validators/users.schema";
+import { response } from "../../../utils/response.js";
+import type { User } from "../repositories/users.repository.js";
+import type { UpdateProfileDto } from "../validators/users.schema.js";
 
 // ── Dependency Interfaces ──────────────────────────────────────────────────────
 

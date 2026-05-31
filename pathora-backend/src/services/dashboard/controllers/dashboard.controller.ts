@@ -6,8 +6,8 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "../../../utils/response";
-import type { DashboardData } from "../use-cases/get-dashboard.use-case";
+import { response } from "../../../utils/response.js";
+import type { DashboardData } from "../use-cases/get-dashboard.use-case.js";
 
 // ── Dependency Interface ───────────────────────────────────────────────────────
 

@@ -11,9 +11,9 @@
  */
 
 import type { Request, Response } from "express";
-import { pool } from "../../config/database";
-import { response } from "../../utils/response";
-import { logger } from "../../config/logger";
+import { pool } from "../../config/database.js";
+import { response } from "../../utils/response.js";
+import { logger } from "../../config/logger.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

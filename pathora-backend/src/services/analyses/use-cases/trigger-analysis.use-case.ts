@@ -12,13 +12,13 @@
  *  6. Catch: update ke 'failed' + log + re-throw (graceful degradation, NFR-009)
  */
 
-import { logger } from "../../../config/logger";
-import { NotFoundError } from "../../../exceptions/not-found-error";
-import { AuthorizationError } from "../../../exceptions/authorization-error";
-import type { CvFull } from "../../cvs/repositories/cvs.repository";
-import type { AnalysisSummary } from "../repositories/analyses.repository";
-import type { AiGatewayAdapter } from "../../ai-gateway/ai-gateway.adapter";
-import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema";
+import { logger } from "../../../config/logger.js";
+import { NotFoundError } from "../../../exceptions/not-found-error.js";
+import { AuthorizationError } from "../../../exceptions/authorization-error.js";
+import type { CvFull } from "../../cvs/repositories/cvs.repository.js";
+import type { AnalysisSummary } from "../repositories/analyses.repository.js";
+import type { AiGatewayAdapter } from "../../ai-gateway/ai-gateway.adapter.js";
+import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@
  * password_hash TIDAK pernah dikembalikan dari createUser (SEC-001).
  */
 
-import { query } from "../../../config/database";
+import { query } from "../../../config/database.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

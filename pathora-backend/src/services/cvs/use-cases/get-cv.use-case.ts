@@ -7,9 +7,9 @@
  * Controller akan menyaring field sensitif sebelum dikirim ke klien.
  */
 
-import { NotFoundError } from "../../../exceptions/not-found-error";
-import { AuthorizationError } from "../../../exceptions/authorization-error";
-import type { CvFull } from "../repositories/cvs.repository";
+import { NotFoundError } from "../../../exceptions/not-found-error.js";
+import { AuthorizationError } from "../../../exceptions/authorization-error.js";
+import type { CvFull } from "../repositories/cvs.repository.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

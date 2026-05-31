@@ -5,11 +5,11 @@
  * Mengembalikan summary saja — tanpa result JSONB penuh (NFR-011).
  */
 
-import type { AnalysisSummary } from "../repositories/analyses.repository";
+import type { AnalysisSummary } from "../repositories/analyses.repository.js";
 import type {
   PaginationParams,
   PaginationMeta,
-} from "../../../utils/pagination";
+} from "../../../utils/pagination.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

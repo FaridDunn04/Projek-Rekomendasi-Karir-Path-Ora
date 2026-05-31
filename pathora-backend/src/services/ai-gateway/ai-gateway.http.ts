@@ -19,11 +19,11 @@
 
 import axios from "axios";
 import FormData from "form-data";
-import { config } from "../../config";
-import { validateAiResponse } from "../../utils/ai-schema-validator";
-import { AiGatewayError } from "../../exceptions/ai-gateway-error";
-import type { AiGatewayAdapter, CvSource } from "./ai-gateway.adapter";
-import type { AiAnalysisResult } from "./ai-response.schema";
+import { config } from "../../config/index.js";
+import { validateAiResponse } from "../../utils/ai-schema-validator.js";
+import { AiGatewayError } from "../../exceptions/ai-gateway-error.js";
+import type { AiGatewayAdapter, CvSource } from "./ai-gateway.adapter.js";
+import type { AiAnalysisResult } from "./ai-response.schema.js";
 
 export class HttpAiGateway implements AiGatewayAdapter {
   async analyze(source: CvSource, cvId: string): Promise<AiAnalysisResult> {

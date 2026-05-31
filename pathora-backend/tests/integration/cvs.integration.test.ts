@@ -5,8 +5,8 @@
  */
 
 import request from "supertest";
-import { createApp } from "../../src/app";
-import { pool } from "../../src/config/database";
+import { createApp } from "../../src/app.js";
+import { pool } from "../../src/config/database.js";
 
 const app = createApp();
 

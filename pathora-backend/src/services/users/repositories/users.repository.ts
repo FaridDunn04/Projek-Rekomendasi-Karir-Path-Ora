@@ -6,7 +6,7 @@
  * Seluruh query menggunakan parameterized queries (SEC-006).
  */
 
-import { query } from "../../../config/database";
+import { query } from "../../../config/database.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

@@ -5,10 +5,10 @@
  */
 
 import { Router } from "express";
-import { auth } from "../../../middlewares/auth";
-import { dashboardRepository } from "../repositories/dashboard.repository";
-import { createGetDashboardUseCase } from "../use-cases/get-dashboard.use-case";
-import { createDashboardController } from "../controllers/dashboard.controller";
+import { auth } from "../../../middlewares/auth.js";
+import { dashboardRepository } from "../repositories/dashboard.repository.js";
+import { createGetDashboardUseCase } from "../use-cases/get-dashboard.use-case.js";
+import { createDashboardController } from "../controllers/dashboard.controller.js";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 

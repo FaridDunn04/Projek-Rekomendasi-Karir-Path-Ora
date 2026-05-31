@@ -13,9 +13,9 @@
  * Simulasi latensi 200ms agar alur loading state frontend dapat diuji.
  */
 
-import { validateAiResponse } from "../../utils/ai-schema-validator";
-import type { AiGatewayAdapter, CvSource } from "./ai-gateway.adapter";
-import type { AiAnalysisResult } from "./ai-response.schema";
+import { validateAiResponse } from "../../utils/ai-schema-validator.js";
+import type { AiGatewayAdapter, CvSource } from "./ai-gateway.adapter.js";
+import type { AiAnalysisResult } from "./ai-response.schema.js";
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 

@@ -16,8 +16,8 @@
 import {
   AiResponseSchema,
   type AiAnalysisResult,
-} from "../services/ai-gateway/ai-response.schema";
-import { AiGatewayError } from "../exceptions/ai-gateway-error";
+} from "../services/ai-gateway/ai-response.schema.js";
+import { AiGatewayError } from "../exceptions/ai-gateway-error.js";
 import { z } from "zod";
 
 /**

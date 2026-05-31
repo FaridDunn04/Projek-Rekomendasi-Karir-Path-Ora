@@ -6,9 +6,9 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "../../../utils/response";
-import { parsePagination } from "../../../utils/pagination";
-import type { UploadCvTextDto } from "../validators/cvs.schema";
+import { response } from "../../../utils/response.js";
+import { parsePagination } from "../../../utils/pagination.js";
+import type { UploadCvTextDto } from "../validators/cvs.schema.js";
 
 // ── Dependency Interfaces ──────────────────────────────────────────────────────
 

@@ -15,10 +15,10 @@
  *  3. process.exit(0)
  */
 
-import { config } from "./config/index";
-import { testConnection, closePool } from "./config/database";
-import { logger } from "./config/logger";
-import { createApp } from "./app";
+import { config } from "./config/index.js";
+import { testConnection, closePool } from "./config/database.js";
+import { logger } from "./config/logger.js";
+import { createApp } from "./app.js";
 
 // ── Startup ────────────────────────────────────────────────────────────────────
 

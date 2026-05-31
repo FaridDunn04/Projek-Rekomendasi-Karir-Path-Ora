@@ -12,8 +12,8 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { response } from "../../../utils/response";
-import type { Category } from "../repositories/categories.repository";
+import { response } from "../../../utils/response.js";
+import type { Category } from "../repositories/categories.repository.js";
 
 // ── Dependency Interface ───────────────────────────────────────────────────────
 

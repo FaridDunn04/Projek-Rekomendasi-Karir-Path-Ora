@@ -20,8 +20,8 @@
 
 import multer, { type FileFilterCallback } from "multer";
 import type { Request } from "express";
-import { config } from "../config";
-import { ClientError } from "../exceptions/client-error";
+import { config } from "../config/index.js";
+import { ClientError } from "../exceptions/client-error.js";
 
 // ── MIME Types yang Diizinkan ──────────────────────────────────────────────────
 

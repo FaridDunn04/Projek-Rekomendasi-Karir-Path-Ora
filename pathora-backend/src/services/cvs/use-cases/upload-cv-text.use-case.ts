@@ -4,8 +4,8 @@
  * Use-case upload CV via teks (FR-008, VAL-003, SDD §3.7.3).
  */
 
-import { ClientError } from "../../../exceptions/client-error";
-import type { Cv, CreateCvTextDto } from "../repositories/cvs.repository";
+import { ClientError } from "../../../exceptions/client-error.js";
+import type { Cv, CreateCvTextDto } from "../repositories/cvs.repository.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

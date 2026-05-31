@@ -10,7 +10,7 @@
  * Empty state (lastAnalysis === null) ditangani di sisi frontend.
  */
 
-import type { AnalysisSummary } from "../repositories/dashboard.repository";
+import type { AnalysisSummary } from "../repositories/dashboard.repository.js";
 
 // ── Dependencies ───────────────────────────────────────────────────────────────
 

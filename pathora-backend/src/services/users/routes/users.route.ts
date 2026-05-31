@@ -6,13 +6,13 @@
  */
 
 import { Router } from "express";
-import { auth } from "../../../middlewares/auth";
-import { validate } from "../../../middlewares/validate";
-import { usersRepository } from "../repositories/users.repository";
-import { UpdateProfileSchema } from "../validators/users.schema";
-import { createGetProfileUseCase } from "../use-cases/get-profile.use-case";
-import { createUpdateProfileUseCase } from "../use-cases/update-profile.use-case";
-import { createUsersController } from "../controllers/users.controller";
+import { auth } from "../../../middlewares/auth.js";
+import { validate } from "../../../middlewares/validate.js";
+import { usersRepository } from "../repositories/users.repository.js";
+import { UpdateProfileSchema } from "../validators/users.schema.js";
+import { createGetProfileUseCase } from "../use-cases/get-profile.use-case.js";
+import { createUpdateProfileUseCase } from "../use-cases/update-profile.use-case.js";
+import { createUsersController } from "../controllers/users.controller.js";
 
 // ── Dependency Wiring ──────────────────────────────────────────────────────────
 
