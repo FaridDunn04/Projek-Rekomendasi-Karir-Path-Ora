@@ -1,29 +1,55 @@
-// FR-1: Register Request/Response Types (SRS §3.1 — Autentikasi & Manajemen Sesi)
-export interface RegisterRequest {
-    full_name: string;
-    email: string;
-    password: string;
-}
-
-// FR-2: Login Request/Response Types (SRS §3.1)
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
-
-export interface AuthResponse {
-    user: User;
-    token: string;
-}
+/**
+ * Authentication Types
+ * Sesuai SDD §15 & SRS §3 - FR-001 User Registration & Login
+ */
 
 export interface User {
-    id: string;
-    full_name: string;
-    email: string;
-    created_at?: string;
+  id: string;
+  name: string;
+  email: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  password_confirm?: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
+export interface RegisterResponse {
+  token: string;
+  user: User;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+
+export interface UpdateProfileResponse {
+  user: User;
+}
+
+// Legacy interface compatibility
+export interface AuthResponse {
+  user: User;
+  token: string;
 }
 
 export interface AuthError {
-    message: string;
-    code: string;
+  message: string;
+  code: string;
 }

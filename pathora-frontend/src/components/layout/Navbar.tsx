@@ -30,13 +30,13 @@ const Navbar: React.FC = () => {
                 <div className="flex items-center gap-3 pl-4  border-gray-200">
                     <div className="flex flex-col items-end">
                         <p className="text-sm font-medium text-gray-900">
-                            {user?.full_name || "User"}
+                            {user?.name || "User"}
                         </p>
                         <p className="text-xs text-gray-500">{user?.email || "email@example.com"}</p>
                     </div>
                     {/* User Avatar */}
                     <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {user?.full_name?.charAt(0)?.toUpperCase() || "U"}
+                        {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                 </div>
             </div>
