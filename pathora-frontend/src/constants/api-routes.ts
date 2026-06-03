@@ -9,14 +9,11 @@ export const API_ROUTES = {
   AUTH: {
     REGISTER: "/auth/register",
     LOGIN: "/auth/login",
-    LOGOUT: "/auth/logout",
-    REFRESH: "/auth/refresh",
   },
 
   // Users
   USERS: {
     ME: "/users/me",
-    PROFILE: "/users/me",
     UPDATE_PROFILE: "/users/me",
   },
 
@@ -26,7 +23,9 @@ export const API_ROUTES = {
     GET_CV: (id: string) => `/cvs/${id}`,
     UPLOAD: "/cvs",
     ANALYZE: (id: string) => `/cvs/${id}/analyze`,
+    LATEST_ANALYSIS: (id: string) => `/cvs/${id}/analysis`,
     LIST: "/cvs",
+    DELETE: (id: string) => `/cvs/${id}`,
   },
 
   // Analysis & Results
@@ -34,7 +33,6 @@ export const API_ROUTES = {
     BASE: "/analyses",
     GET: (id: string) => `/analyses/${id}`,
     LIST: "/analyses",
-    HISTORY: "/analyses",
   },
 
   // Categories
@@ -45,8 +43,7 @@ export const API_ROUTES = {
 
   // Dashboard
   DASHBOARD: {
-    SUMMARY: "/dashboard/summary",
-    ANALYSIS_HISTORY: "/dashboard/analysis-history",
+    ME: "/dashboard/me",
   },
 
   // Health Check

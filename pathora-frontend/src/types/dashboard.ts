@@ -3,10 +3,8 @@
  * Sesuai SDD §10 & SRS §3 - FR-002 Dashboard Utama
  */
 
-import { Analysis } from "./analysis";
-
 export interface DashboardSummary {
-  latest_analysis: Analysis | null; // Analisis terbaru atau null jika belum pernah
+  latest_analysis: AnalysisHistoryItem | null; // Analisis terbaru atau null jika belum pernah
   total_analyses: number;
   categories_distribution?: Record<string, number>; // Untuk admin dashboard (P2)
 }

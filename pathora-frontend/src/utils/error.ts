@@ -14,6 +14,13 @@ export const isNetworkError = (error: unknown): boolean =>
  * Sesuai SDD error handling design
  */
 export function parseApiError(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const apiError = error as ApiError;
+    if (typeof apiError.message === "string" && apiError.message.trim()) {
+      return apiError.message;
+    }
+  }
+
   if (isNetworkError(error))
     return "Koneksi gagal. Periksa jaringan Anda lalu coba lagi.";
 
@@ -26,9 +33,11 @@ export function parseApiError(error: unknown): string {
       case 400:
         return apiMsg ?? "Request tidak valid.";
       case 401:
-        return "Sesi Anda berakhir. Silakan login kembali.";
+        return apiMsg ?? "Sesi Anda berakhir. Silakan login kembali.";
       case 403:
         return "Akses ditolak.";
+      case 409:
+        return apiMsg ?? "Data sudah terdaftar.";
       case 404:
         return apiMsg ?? "Data tidak ditemukan.";
       case 422:

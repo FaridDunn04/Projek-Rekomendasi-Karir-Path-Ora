@@ -18,7 +18,13 @@ export interface AuthState {
 }
 
 export function useAuth() {
-  const { setToken, setUser, logout: storeLogout, user, isAuthenticated } = useAuthStore();
+  const {
+    setToken,
+    setUser,
+    logout: storeLogout,
+    user,
+    isAuthenticated,
+  } = useAuthStore();
   const [isSubmitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -43,9 +49,13 @@ export function useAuth() {
     setError(null);
     try {
       const res = await authService.register(payload);
-      setToken(res.token);
-      setUser(res.user);
-      navigate("/dashboard", { replace: true });
+      if (res.token) {
+        setToken(res.token);
+        setUser(res.user);
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
     } catch (e) {
       setError(parseApiError(e));
     } finally {
@@ -74,4 +84,3 @@ export function useAuth() {
     isAuthenticated,
   };
 }
-    

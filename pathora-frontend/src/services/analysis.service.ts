@@ -1,6 +1,100 @@
-
 import { apiClient } from "./api.client";
-import { Analysis, AnalysisListResponse } from "../types/analysis";
+import { API_ROUTES } from "../constants/api-routes";
+import { ApiResponse } from "../types/api";
+import {
+  Analysis,
+  AnalysisListResponse,
+  AnalysisResult,
+  AnalyzeResponse,
+} from "../types/analysis";
+
+type BackendSkill = string | { skill?: string; name?: string };
+
+type BackendAnalysis = Partial<Analysis> & {
+  analysisId?: string;
+  top_5_predictions?: Array<{
+    category: string;
+    confidence?: number;
+    score?: number;
+    matched_skills?: BackendSkill[];
+    missing_skills?: BackendSkill[];
+  }>;
+  extracted_skills?: Array<{
+    category?: string;
+    matched_skills?: BackendSkill[];
+    missing_skills?: BackendSkill[];
+  }>;
+  career_recommendations?: AnalysisResult["career_recommendations"];
+  description_career_recommendations?: string;
+};
+
+const skillName = (skill: BackendSkill): string =>
+  typeof skill === "string" ? skill : skill.skill ?? skill.name ?? "";
+
+const normalizeSkills = (skills?: BackendSkill[]): string[] =>
+  (skills ?? []).map(skillName).filter(Boolean);
+
+export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
+  const result = analysis.result;
+  const extracted = analysis.extracted_skills?.[0];
+  const topPredictions =
+    result?.top_predictions ??
+    (analysis.top_5_predictions ?? []).map((prediction) => ({
+      category: prediction.category,
+      score: prediction.score ?? prediction.confidence ?? 0,
+      confidence: prediction.confidence ?? prediction.score ?? 0,
+      matched_skills: normalizeSkills(prediction.matched_skills),
+      missing_skills: normalizeSkills(prediction.missing_skills),
+    }));
+
+  const normalizedResult: AnalysisResult | null =
+    result || analysis.predicted_category
+      ? {
+          predicted_category:
+            result?.predicted_category ?? analysis.predicted_category ?? "",
+          confidence: result?.confidence ?? analysis.confidence ?? 0,
+          top_predictions: topPredictions,
+          career_recommendations:
+            result?.career_recommendations ??
+            analysis.career_recommendations ??
+            [],
+          description_career_recommendations:
+            result?.description_career_recommendations ??
+            analysis.description_career_recommendations ??
+            "",
+          matched_skills:
+            result?.matched_skills ?? normalizeSkills(extracted?.matched_skills),
+          missing_skills:
+            result?.missing_skills ?? normalizeSkills(extracted?.missing_skills),
+        }
+      : null;
+
+  return {
+    id: analysis.id ?? analysis.analysisId ?? "",
+    cv_id: analysis.cv_id ?? "",
+    user_id: analysis.user_id ?? "",
+    status: analysis.status ?? "success",
+    predicted_category:
+      analysis.predicted_category ?? normalizedResult?.predicted_category ?? "",
+    confidence: analysis.confidence ?? normalizedResult?.confidence ?? 0,
+    result: normalizedResult,
+    analyzed_at: analysis.analyzed_at,
+    created_at: analysis.created_at ?? analysis.analyzed_at ?? "",
+  };
+};
+
+export const normalizeAnalyzeResponse = (
+  analysis: BackendAnalysis,
+): AnalyzeResponse => {
+  const normalized = normalizeAnalysis(analysis);
+  return {
+    id: normalized.id,
+    status: normalized.status,
+    result: normalized.result,
+    predicted_category: normalized.predicted_category,
+    confidence: normalized.confidence,
+  };
+};
 
 export const analysisService = {
   /**
@@ -9,12 +103,23 @@ export const analysisService = {
    */
   async getAnalysis(analysisId: string): Promise<Analysis> {
     try {
-      const response = await apiClient.get<{ analysis: Analysis }>(`/analyses/${analysisId}`);
-      return response.data.analysis;
+      const response = await apiClient.get<ApiResponse<Analysis>>(
+        API_ROUTES.ANALYSES.GET(analysisId),
+      );
+      if (!response.data.data) {
+        throw new Error("Analysis response tidak valid");
+      }
+      return normalizeAnalysis(response.data.data);
     } catch (error: any) {
       throw {
-        code: error.response?.data?.error?.code || "GET_ANALYSIS_ERROR",
-        message: error.response?.data?.error?.message || "Gagal mengambil hasil analisis",
+        code:
+          error.response?.data?.error?.code ||
+          error.code ||
+          "GET_ANALYSIS_ERROR",
+        message:
+          error.response?.data?.error?.message ||
+          error.message ||
+          "Gagal mengambil hasil analisis",
       };
     }
   },
@@ -23,16 +128,38 @@ export const analysisService = {
    * Get daftar semua analisis pengguna
    * GET /analyses
    */
-  async getAnalyses(page: number = 1, limit: number = 10): Promise<AnalysisListResponse> {
+  async getAnalyses(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<AnalysisListResponse> {
     try {
-      const response = await apiClient.get<AnalysisListResponse>("/analyses", {
-        params: { page, limit },
-      });
-      return response.data;
+      const offset = (page - 1) * limit;
+      const response = await apiClient.get<ApiResponse<Analysis[]>>(
+        API_ROUTES.ANALYSES.LIST,
+        {
+          params: { limit, offset },
+        },
+      );
+
+      const analyses = (response.data.data ?? []).map(normalizeAnalysis);
+      const meta = response.data.meta ?? {};
+
+      return {
+        analyses,
+        total: typeof meta.total === "number" ? meta.total : analyses.length,
+        page,
+        limit: typeof meta.limit === "number" ? meta.limit : limit,
+      };
     } catch (error: any) {
       throw {
-        code: error.response?.data?.error?.code || "GET_ANALYSES_ERROR",
-        message: error.response?.data?.error?.message || "Gagal mengambil daftar analisis",
+        code:
+          error.response?.data?.error?.code ||
+          error.code ||
+          "GET_ANALYSES_ERROR",
+        message:
+          error.response?.data?.error?.message ||
+          error.message ||
+          "Gagal mengambil daftar analisis",
       };
     }
   },
@@ -43,5 +170,32 @@ export const analysisService = {
    */
   async getAnalysisHistory(limit: number = 5): Promise<AnalysisListResponse> {
     return this.getAnalyses(1, limit);
+  },
+
+  /**
+   * Get latest analysis by CV ID
+   * GET /cvs/:cvId/analysis
+   */
+  async getLatestByCv(cvId: string): Promise<Analysis> {
+    try {
+      const response = await apiClient.get<ApiResponse<Analysis>>(
+        API_ROUTES.CVS.LATEST_ANALYSIS(cvId),
+      );
+      if (!response.data.data) {
+        throw new Error("Latest analysis response tidak valid");
+      }
+      return normalizeAnalysis(response.data.data);
+    } catch (error: any) {
+      throw {
+        code:
+          error.response?.data?.error?.code ||
+          error.code ||
+          "GET_ANALYSIS_ERROR",
+        message:
+          error.response?.data?.error?.message ||
+          error.message ||
+          "Gagal mengambil hasil analisis",
+      };
+    }
   },
 };
