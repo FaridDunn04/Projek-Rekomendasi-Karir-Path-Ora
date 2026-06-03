@@ -29,25 +29,23 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        {/* Input Full Name */}
-        <Input
-          type="text"
-          id="name"
-          label="NAME"
-          placeholder="Enter Your Name"
-          className={`focus:ring-blue-500 ${
-            errors.name
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300"
-          }`}
-          {...register("name")}
-        />
-        {errors.name && (
-          <p className="text-red-500 text-xs -mt-3 mb-2">
-            {errors.name.message}
-          </p>
-        )}
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                {/* Input Full Name */}
+                <Input
+                    type="text"
+                    id="full_name"
+                    label="NAME"
+                    placeholder="Enter Your Name"
+                    className={`focus:ring-blue-500 ${
+                        errors.name
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300"
+                    }`}
+                    {...register("name")}
+                />
+                {errors.name && (
+                    <p className="text-red-500 text-xs -mt-3 mb-2">{errors.name.message}</p>
+                )}
 
         {/* Input Email */}
         <Input
@@ -87,24 +85,24 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
           </p>
         )}
 
-        {/* Input Confirm Password */}
-        <Input
-          type="password"
-          id="password_confirm"
-          label="CONFIRM PASSWORD"
-          placeholder="••••••••"
-          className={`focus:ring-blue-500 ${
-            errors.password_confirm
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300"
-          }`}
-          {...register("password_confirm")}
-        />
-        {errors.password_confirm && (
-          <p className="text-red-500 text-xs -mt-3 mb-2">
-            {errors.password_confirm.message}
-          </p>
-        )}
+                {/* Input Confirm Password */}
+                <Input
+                    type="password"
+                    id="password_confirm"
+                    label="CONFIRM PASSWORD"
+                    placeholder="••••••••"
+                    className={`focus:ring-blue-500 ${
+                        errors.password_confirm
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300"
+                    }`}
+                    {...register("password_confirm")}
+                />
+                {errors.password_confirm && (
+                    <p className="text-red-500 text-xs -mt-3 mb-2">
+                        {errors.password_confirm.message}
+                    </p>
+                )}
 
         <div className="pt-6">
           <Button
