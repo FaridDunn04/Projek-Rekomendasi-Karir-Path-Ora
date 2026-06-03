@@ -1,11 +1,7 @@
-"use strict";
-
+﻿"use strict";
 exports.shorthands = undefined;
-
 exports.up = async function up(pgm) {
-  // Aktifkan ekstensi pgcrypto untuk gen_random_uuid() (DATA-001)
   pgm.createExtension("pgcrypto", { ifNotExists: true });
-
   pgm.createTable("users", {
     id: {
       type: "uuid",
@@ -33,7 +29,6 @@ exports.up = async function up(pgm) {
     },
   });
 };
-
 exports.down = async function down(pgm) {
   pgm.dropTable("users");
 };

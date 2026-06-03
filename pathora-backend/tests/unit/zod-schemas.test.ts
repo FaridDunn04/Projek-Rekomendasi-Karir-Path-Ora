@@ -1,10 +1,4 @@
-/**
- * tests/unit/zod-schemas.test.ts
- *
- * Unit test untuk Zod validation schemas (VAL-001..VAL-007, SDD §8.2).
- * Memastikan schema menolak input invalid dan menerima input valid.
- */
-
+﻿
 import {
   RegisterSchema,
   LoginSchema,
@@ -17,8 +11,6 @@ import {
 import { AnalysisIdParamSchema } from "../../src/services/analyses/validators/analyses.schema.js";
 import { AiResponseSchema } from "../../src/services/ai-gateway/ai-response.schema.js";
 
-// ── RegisterSchema ─────────────────────────────────────────────────────────────
-
 describe("RegisterSchema (VAL-001)", () => {
   it("menerima input valid", () => {
     const result = RegisterSchema.safeParse({
@@ -28,7 +20,6 @@ describe("RegisterSchema (VAL-001)", () => {
     });
     expect(result.success).toBe(true);
   });
-
   it("menolak email tidak valid", () => {
     const result = RegisterSchema.safeParse({
       full_name: "Rani",
@@ -37,7 +28,6 @@ describe("RegisterSchema (VAL-001)", () => {
     });
     expect(result.success).toBe(false);
   });
-
   it("menolak password kurang dari 8 karakter", () => {
     const result = RegisterSchema.safeParse({
       full_name: "Rani",
@@ -46,7 +36,6 @@ describe("RegisterSchema (VAL-001)", () => {
     });
     expect(result.success).toBe(false);
   });
-
   it("menolak full_name kurang dari 2 karakter", () => {
     const result = RegisterSchema.safeParse({
       full_name: "R",
@@ -57,8 +46,6 @@ describe("RegisterSchema (VAL-001)", () => {
   });
 });
 
-// ── LoginSchema ────────────────────────────────────────────────────────────────
-
 describe("LoginSchema (VAL-002)", () => {
   it("menerima input valid", () => {
     const result = LoginSchema.safeParse({
@@ -67,7 +54,6 @@ describe("LoginSchema (VAL-002)", () => {
     });
     expect(result.success).toBe(true);
   });
-
   it("menolak password kosong", () => {
     const result = LoginSchema.safeParse({
       email: "rani@example.com",
@@ -77,26 +63,20 @@ describe("LoginSchema (VAL-002)", () => {
   });
 });
 
-// ── UpdateProfileSchema ────────────────────────────────────────────────────────
-
 describe("UpdateProfileSchema (VAL-005)", () => {
   it("menerima update full_name saja", () => {
     const result = UpdateProfileSchema.safeParse({ full_name: "Rani Baru" });
     expect(result.success).toBe(true);
   });
-
   it("menerima update email saja", () => {
     const result = UpdateProfileSchema.safeParse({ email: "baru@example.com" });
     expect(result.success).toBe(true);
   });
-
   it("menolak bila tidak ada field yang diisi", () => {
     const result = UpdateProfileSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 });
-
-// ── UploadCvTextSchema ─────────────────────────────────────────────────────────
 
 describe("UploadCvTextSchema (VAL-003)", () => {
   it("menerima teks minimal 100 karakter", () => {
@@ -106,7 +86,6 @@ describe("UploadCvTextSchema (VAL-003)", () => {
     });
     expect(result.success).toBe(true);
   });
-
   it("menolak teks kurang dari 100 karakter", () => {
     const result = UploadCvTextSchema.safeParse({
       source_type: "text",
@@ -116,8 +95,6 @@ describe("UploadCvTextSchema (VAL-003)", () => {
   });
 });
 
-// ── CvIdParamSchema ────────────────────────────────────────────────────────────
-
 describe("CvIdParamSchema (VAL-006)", () => {
   it("menerima UUID valid", () => {
     const result = CvIdParamSchema.safeParse({
@@ -125,14 +102,11 @@ describe("CvIdParamSchema (VAL-006)", () => {
     });
     expect(result.success).toBe(true);
   });
-
   it("menolak string bukan UUID", () => {
     const result = CvIdParamSchema.safeParse({ cvId: "bukan-uuid" });
     expect(result.success).toBe(false);
   });
 });
-
-// ── AnalysisIdParamSchema ──────────────────────────────────────────────────────
 
 describe("AnalysisIdParamSchema (VAL-006)", () => {
   it("menerima UUID valid", () => {
@@ -142,8 +116,6 @@ describe("AnalysisIdParamSchema (VAL-006)", () => {
     expect(result.success).toBe(true);
   });
 });
-
-// ── AiResponseSchema ───────────────────────────────────────────────────────────
 
 describe("AiResponseSchema (VAL-007)", () => {
   const validPayload = {
@@ -166,12 +138,10 @@ describe("AiResponseSchema (VAL-007)", () => {
     ],
     description_career_recommendations: "Based on your skills...",
   };
-
   it("menerima payload sesuai kontrak AI", () => {
     const result = AiResponseSchema.safeParse(validPayload);
     expect(result.success).toBe(true);
   });
-
   it("menerima description_career_recommendations null", () => {
     const result = AiResponseSchema.safeParse({
       ...validPayload,
@@ -179,13 +149,11 @@ describe("AiResponseSchema (VAL-007)", () => {
     });
     expect(result.success).toBe(true);
   });
-
   it("menolak payload tanpa cv_id", () => {
     const { cv_id: _omit, ...withoutCvId } = validPayload;
     const result = AiResponseSchema.safeParse(withoutCvId);
     expect(result.success).toBe(false);
   });
-
   it("menolak confidence di luar rentang 0-1", () => {
     const result = AiResponseSchema.safeParse({
       ...validPayload,

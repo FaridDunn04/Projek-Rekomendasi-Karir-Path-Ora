@@ -1,10 +1,4 @@
-/**
- * services/auth/routes/auth.route.ts
- *
- * Routing untuk domain auth (API-001, API-002).
- * Dependency wiring: repo → use-cases → controller → routes.
- */
-
+﻿
 import { Router } from "express";
 import { strictLimiter } from "../../../middlewares/rate-limit.js";
 import { validate } from "../../../middlewares/validate.js";
@@ -15,8 +9,6 @@ import { createLoginUseCase } from "../use-cases/login.use-case.js";
 import { createAuthController } from "../controllers/auth.controller.js";
 import { passwordManager } from "../../../security/password-manager.js";
 import { tokenManager } from "../../../security/token-manager.js";
-
-// ── Dependency Wiring ──────────────────────────────────────────────────────────
 
 const registerUseCase = createRegisterUseCase({
   authRepo: authRepository,
@@ -32,19 +24,12 @@ const { register, login } = createAuthController({
   loginUseCase,
 });
 
-// ── Router ─────────────────────────────────────────────────────────────────────
-
 const router = Router();
-
-/** POST /auth/register */
 router.post(
   "/register",
   strictLimiter,
   validate(RegisterSchema, "body"),
   register,
 );
-
-/** POST /auth/login */
 router.post("/login", strictLimiter, validate(LoginSchema, "body"), login);
-
 export default router;

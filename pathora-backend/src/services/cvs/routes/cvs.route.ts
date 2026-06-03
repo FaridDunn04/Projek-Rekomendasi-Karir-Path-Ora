@@ -1,10 +1,4 @@
-/**
- * services/cvs/routes/cvs.route.ts
- *
- * Routing untuk domain CVs + Analyses (API-006..API-013, SDD §3.7.3, §3.7.4).
- * Dependency wiring: repo → use-cases → controller → routes.
- */
-
+﻿
 import { Router } from "express";
 import { auth } from "../../../middlewares/auth.js";
 import { validate } from "../../../middlewares/validate.js";
@@ -26,11 +20,8 @@ import { createListAnalysesUseCase } from "../../analyses/use-cases/list-analyse
 import { createAnalysesController } from "../../analyses/controllers/analyses.controller.js";
 import { createAiGateway } from "../../ai-gateway/ai-gateway.factory.js";
 
-// ── Dependency Wiring ──────────────────────────────────────────────────────────
-
 const aiGateway = createAiGateway();
 
-// CVs
 const { upload, list, getOne, remove } = createCvsController({
   uploadCvTextUseCase: createUploadCvTextUseCase({ cvsRepo: cvsRepository }),
   uploadCvFileUseCase: createUploadCvFileUseCase({ cvsRepo: cvsRepository }),
@@ -39,7 +30,6 @@ const { upload, list, getOne, remove } = createCvsController({
   getCvUseCase: createGetCvUseCase({ cvsRepo: cvsRepository }),
 });
 
-// Analyses (nested under /cvs/:cvId)
 const { trigger, getLatestByCv } = createAnalysesController({
   triggerAnalysisUseCase: createTriggerAnalysisUseCase({
     cvsRepo: cvsRepository,
@@ -58,15 +48,11 @@ const { trigger, getLatestByCv } = createAnalysesController({
   }),
 });
 
-// ── Router ─────────────────────────────────────────────────────────────────────
-
 const router = Router();
-
 router.post("/", auth, uploadCvFile, upload);
 router.get("/", auth, list);
 router.get("/:cvId", auth, validate(CvIdParamSchema, "params"), getOne);
 router.delete("/:cvId", auth, validate(CvIdParamSchema, "params"), remove);
-
 router.post(
   "/:cvId/analyze",
   auth,
@@ -80,5 +66,4 @@ router.get(
   validate(CvIdParamSchema, "params"),
   getLatestByCv,
 );
-
 export default router;

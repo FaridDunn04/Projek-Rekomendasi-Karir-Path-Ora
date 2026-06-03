@@ -1,17 +1,9 @@
-/**
- * services/analyses/use-cases/list-analyses.use-case.ts
- *
- * Use-case daftar riwayat analisis milik user (FR-023, API-012, SDD §3.7.4).
- * Mengembalikan summary saja — tanpa result JSONB penuh (NFR-011).
- */
-
+﻿
 import type { AnalysisSummary } from "../repositories/analyses.repository.js";
 import type {
   PaginationParams,
   PaginationMeta,
 } from "../../../utils/pagination.js";
-
-// ── Dependencies ───────────────────────────────────────────────────────────────
 
 interface AnalysesRepo {
   findByUser(
@@ -19,25 +11,18 @@ interface AnalysesRepo {
     pagination: PaginationParams,
   ): Promise<AnalysisSummary[]>;
 }
-
 interface ListAnalysesDeps {
   analysesRepo: AnalysesRepo;
 }
-
-// ── Output ─────────────────────────────────────────────────────────────────────
 
 export interface ListAnalysesResult {
   analyses: AnalysisSummary[];
   meta: PaginationMeta;
 }
 
-// ── Factory ────────────────────────────────────────────────────────────────────
-
 export function createListAnalysesUseCase({ analysesRepo }: ListAnalysesDeps) {
   return {
-    /**
-     * Mengambil riwayat analisis milik user dengan paginasi.
-     */
+
     async execute(
       userId: string,
       pagination: PaginationParams,

@@ -1,23 +1,4 @@
-/**
- * services/ai-gateway/ai-gateway.http.ts
- *
- * Implementasi HTTP AI Gateway — memanggil layanan AI nyata via axios
- * (SDD §3.6, FR-013, NFR-003, NFR-009).
- *
- * Alur untuk kind='text':
- *   POST AI_BASE_URL/analyze  body: { cv_id, raw_text }
- *
- * Alur untuk kind='file' (revisi v1.1):
- *   POST AI_BASE_URL/analyze  multipart/form-data: { cv_id, file }
- *   Layanan AI yang mengekstrak teks dari berkas.
- *
- * Penanganan error (graceful degradation, NFR-009):
- *   - Timeout (ECONNABORTED)  → AiGatewayError('timeout')        → 504
- *   - AI error 5xx            → AiGatewayError('upstream_error') → 502
- *   - Respons tidak valid     → AiGatewayError('invalid_response')→ 422
- */
-
-import axios from "axios";
+﻿import axios from "axios";
 import FormData from "form-data";
 import { config } from "../../config/index.js";
 import { validateAiResponse } from "../../utils/ai-schema-validator.js";
@@ -31,25 +12,29 @@ export class HttpAiGateway implements AiGatewayAdapter {
       let responseData: unknown;
 
       if (source.kind === "text") {
-        // ── Teks: kirim sebagai JSON ─────────────────────────────────────────
+        // AI mengharapkan application/x-www-form-urlencoded dengan field "text"
+        const params = new URLSearchParams();
+        params.append("text", source.rawText);
+
         const { data } = await axios.post(
-          `${config.AI_BASE_URL}/analyze`,
-          { cv_id: cvId, raw_text: source.rawText },
-          { timeout: config.AI_TIMEOUT_MS },
+          `${config.AI_BASE_URL}/predict`,
+          params,
+          {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            timeout: config.AI_TIMEOUT_MS,
+          },
         );
         responseData = data;
       } else {
-        // ── Berkas: kirim sebagai multipart/form-data (revisi v1.1) ──────────
-        // AI yang mengekstrak teks — backend hanya meneruskan buffer mentah
+        // Upload file: kirim sebagai multipart/form-data
         const form = new FormData();
-        form.append("cv_id", cvId);
         form.append("file", source.fileData, {
           filename: source.fileName ?? "cv",
           contentType: source.fileMime,
         });
 
         const { data } = await axios.post(
-          `${config.AI_BASE_URL}/analyze`,
+          `${config.AI_BASE_URL}/predict/file`,
           form,
           {
             headers: form.getHeaders(),
@@ -59,39 +44,52 @@ export class HttpAiGateway implements AiGatewayAdapter {
         responseData = data;
       }
 
-      // Validasi respons terhadap AiResponseSchema sebelum dikembalikan
-      return validateAiResponse(responseData);
-    } catch (err) {
-      // Re-throw AiGatewayError yang sudah dibuat oleh validateAiResponse
-      if (err instanceof AiGatewayError) throw err;
+      // Response AI bisa berupa string JSON — parse dulu bila perlu
+      const parsed =
+        typeof responseData === "string"
+          ? (JSON.parse(responseData) as unknown)
+          : responseData;
 
+      // Tambahkan cv_id & analyzed_at bila AI tidak mengembalikannya
+      const normalized =
+        parsed !== null && typeof parsed === "object"
+          ? {
+              cv_id: cvId,
+              analyzed_at: new Date().toISOString(),
+              ...(parsed as Record<string, unknown>),
+            }
+          : parsed;
+
+      return validateAiResponse(normalized);
+    } catch (err) {
+      if (err instanceof AiGatewayError) throw err;
+      if (err instanceof SyntaxError) {
+        throw new AiGatewayError(
+          "invalid_response",
+          "Respons AI bukan JSON yang valid",
+        );
+      }
       if (axios.isAxiosError(err)) {
-        // Timeout — axios melempar ECONNABORTED saat melewati batas waktu
         if (err.code === "ECONNABORTED" || err.code === "ERR_CANCELED") {
           throw new AiGatewayError(
             "timeout",
             `Layanan AI tidak merespons dalam ${config.AI_TIMEOUT_MS}ms`,
           );
         }
-
-        // Error 5xx dari layanan AI
         if ((err.response?.status ?? 0) >= 500) {
           throw new AiGatewayError(
             "upstream_error",
             `Layanan AI mengembalikan error ${err.response?.status ?? "unknown"}`,
           );
         }
-
-        // Error 4xx — kemungkinan payload yang dikirim tidak valid
         if ((err.response?.status ?? 0) >= 400) {
           throw new AiGatewayError(
             "upstream_error",
             `Layanan AI menolak request: ${err.response?.status ?? "unknown"}`,
+            err.response?.data,
           );
         }
       }
-
-      // Error tak terduga lainnya
       throw new AiGatewayError(
         "upstream_error",
         "Kegagalan tak terduga saat menghubungi layanan AI",

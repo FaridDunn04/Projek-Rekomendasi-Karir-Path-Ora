@@ -1,10 +1,4 @@
-/**
- * services/analyses/routes/analyses.route.ts
- *
- * Routing untuk endpoint /analyses (API-012, API-013, SDD §3.7.4).
- * Dependency wiring: repo → use-cases → controller → routes.
- */
-
+﻿
 import { Router } from "express";
 import { auth } from "../../../middlewares/auth.js";
 import { validate } from "../../../middlewares/validate.js";
@@ -18,10 +12,7 @@ import { createTriggerAnalysisUseCase } from "../use-cases/trigger-analysis.use-
 import { createAiGateway } from "../../ai-gateway/ai-gateway.factory.js";
 import { createAnalysesController } from "../controllers/analyses.controller.js";
 
-// ── Dependency Wiring ──────────────────────────────────────────────────────────
-
 const aiGateway = createAiGateway();
-
 const { getOne, list } = createAnalysesController({
   triggerAnalysisUseCase: createTriggerAnalysisUseCase({
     cvsRepo: cvsRepository,
@@ -40,19 +31,12 @@ const { getOne, list } = createAnalysesController({
   }),
 });
 
-// ── Router ─────────────────────────────────────────────────────────────────────
-
 const router = Router();
-
-/** GET /analyses */
 router.get("/", auth, list);
-
-/** GET /analyses/:analysisId */
 router.get(
   "/:analysisId",
   auth,
   validate(AnalysisIdParamSchema, "params"),
   getOne,
 );
-
 export default router;

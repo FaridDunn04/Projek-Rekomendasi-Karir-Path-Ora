@@ -1,39 +1,25 @@
-/**
- * services/auth/controllers/auth.controller.ts
- *
- * Controller untuk endpoint auth (FR-001, FR-002).
- */
-
+﻿
 import type { Request, Response, NextFunction } from "express";
 import { response } from "../../../utils/response.js";
 import type { User } from "../repositories/auth.repository.js";
 import type { RegisterDto, LoginDto } from "../validators/auth.schema.js";
 
-// ── Dependency Interfaces ──────────────────────────────────────────────────────
-
 interface RegisterUseCase {
   execute(dto: RegisterDto): Promise<User>;
 }
-
 interface LoginUseCase {
   execute(dto: LoginDto): Promise<{ token: string; user: User }>;
 }
-
 interface AuthControllerDeps {
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
 }
 
-// ── Factory ────────────────────────────────────────────────────────────────────
-
 export function createAuthController({
   registerUseCase,
   loginUseCase,
 }: AuthControllerDeps) {
-  /**
-   * POST /auth/register
-   * Mendaftarkan pengguna baru dan mengembalikan data user (201).
-   */
+
   async function register(
     req: Request,
     res: Response,
@@ -47,10 +33,6 @@ export function createAuthController({
     }
   }
 
-  /**
-   * POST /auth/login
-   * Memverifikasi kredensial dan mengembalikan token + user (200).
-   */
   async function login(
     req: Request,
     res: Response,
@@ -63,6 +45,5 @@ export function createAuthController({
       next(err);
     }
   }
-
   return { register, login };
 }

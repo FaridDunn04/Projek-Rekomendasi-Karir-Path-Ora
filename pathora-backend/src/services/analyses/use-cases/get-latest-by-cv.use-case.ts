@@ -1,36 +1,22 @@
-/**
- * services/analyses/use-cases/get-latest-by-cv.use-case.ts
- *
- * Use-case ambil analisis terbaru dari sebuah CV (API-011, SDD §3.7.3).
- * Digunakan oleh GET /cvs/:cvId/analysis.
- * Menerapkan aturan filtering yang sama dengan get-analysis.use-case.ts.
- */
-
+﻿
 import { NotFoundError } from "../../../exceptions/not-found-error.js";
 import { AuthorizationError } from "../../../exceptions/authorization-error.js";
 import type { Analysis } from "../repositories/analyses.repository.js";
 import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema.js";
 
-// ── Dependencies ───────────────────────────────────────────────────────────────
-
 interface CvsRepo {
   findById(id: string): Promise<{ user_id: string } | null>;
 }
-
 interface AnalysesRepo {
   findLatestByCvId(cvId: string): Promise<Analysis | null>;
 }
-
 interface GetLatestByCvDeps {
   cvsRepo: CvsRepo;
   analysesRepo: AnalysesRepo;
 }
 
-// ── Filtering (sama dengan get-analysis.use-case.ts) ──────────────────────────
-
 const CONFIDENCE_THRESHOLD = 0.05;
 const MATCH_SCORE_THRESHOLD = 0.3;
-
 function applyFilters(result: AiAnalysisResult): AiAnalysisResult {
   return {
     ...result,
@@ -49,23 +35,18 @@ function applyFilters(result: AiAnalysisResult): AiAnalysisResult {
   };
 }
 
-// ── Factory ────────────────────────────────────────────────────────────────────
-
 export function createGetLatestByCvUseCase({
   cvsRepo,
   analysesRepo,
 }: GetLatestByCvDeps) {
   return {
     async execute(cvId: string, userId: string): Promise<Analysis> {
-      // Validasi CV ada & milik user
       const cv = await cvsRepo.findById(cvId);
       if (!cv) throw new NotFoundError("CV tidak ditemukan");
       if (cv.user_id !== userId)
         throw new AuthorizationError("Anda tidak memiliki akses ke CV ini");
-
       const analysis = await analysesRepo.findLatestByCvId(cvId);
       if (!analysis) throw new NotFoundError("Belum ada analisis untuk CV ini");
-
       if (analysis.result) {
         return { ...analysis, result: applyFilters(analysis.result) };
       }

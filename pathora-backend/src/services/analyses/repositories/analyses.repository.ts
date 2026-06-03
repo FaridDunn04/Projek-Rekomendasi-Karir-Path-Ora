@@ -1,22 +1,8 @@
-/**
- * services/analyses/repositories/analyses.repository.ts
- *
- * PostgreSQL repository untuk domain Analyses (DATA-003, SDD §3.7.4).
- *
- * Kolom result (JSONB) menyimpan payload penuh dari layanan AI (DATA-005).
- * findByUser() hanya mengembalikan kolom summary — tanpa result JSONB (NFR-011).
- * findById()   mengembalikan result JSONB penuh untuk halaman Analysis.
- */
-
-import { query } from "../../../config/database.js";
+﻿import { query } from "../../../config/database.js";
 import type { PaginationParams } from "../../../utils/pagination.js";
 import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema.js";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
 export type AnalysisStatus = "pending" | "success" | "failed";
-
-/** Summary — digunakan untuk daftar riwayat & dashboard (tanpa result JSONB) */
 export interface AnalysisSummary {
   id: string;
   cv_id: string;
@@ -27,18 +13,14 @@ export interface AnalysisSummary {
   analyzed_at: Date | null;
   created_at: Date;
 }
-
-/** Full — digunakan untuk halaman Analysis (dengan result JSONB) */
 export interface Analysis extends AnalysisSummary {
   result: AiAnalysisResult | null;
 }
-
 export interface CreateAnalysisDto {
   cv_id: string;
   user_id: string;
   status: AnalysisStatus;
 }
-
 export interface UpdateAnalysisDto {
   status?: AnalysisStatus;
   predicted_category?: string;
@@ -47,13 +29,7 @@ export interface UpdateAnalysisDto {
   analyzed_at?: Date;
 }
 
-// ── Repository ─────────────────────────────────────────────────────────────────
-
 export const analysesRepository = {
-  /**
-   * Membuat record analisis baru dengan status awal (biasanya 'pending').
-   * Record dibuat SEBELUM memanggil AI agar kegagalan dapat ditandai 'failed' (§11.5).
-   */
   async create(data: CreateAnalysisDto): Promise<AnalysisSummary> {
     const result = await query<AnalysisSummary>(
       `INSERT INTO analyses (cv_id, user_id, status)
@@ -64,10 +40,6 @@ export const analysesRepository = {
     return result.rows[0]!;
   },
 
-  /**
-   * Memperbarui field analisis secara dinamis.
-   * Digunakan untuk: set 'success' + result, atau set 'failed'.
-   */
   async update(
     id: string,
     data: Partial<UpdateAnalysisDto>,
@@ -76,12 +48,10 @@ export const analysesRepository = {
     const setClauses = fields.map((f, i) => `${f} = $${i + 1}`);
     const values = fields.map((f) => {
       const val = data[f];
-      // Serialisasi JSONB secara eksplisit
       if (f === "result") return JSON.stringify(val);
       return val;
     });
     values.push(id);
-
     const result = await query<AnalysisSummary>(
       `UPDATE analyses
        SET ${setClauses.join(", ")}
@@ -92,10 +62,6 @@ export const analysesRepository = {
     return result.rows[0]!;
   },
 
-  /**
-   * Mencari analisis berdasarkan ID — menyertakan result JSONB penuh.
-   * Mengembalikan null bila tidak ditemukan.
-   */
   async findById(id: string): Promise<Analysis | null> {
     const result = await query<Analysis>(
       `SELECT id, cv_id, user_id, status, predicted_category, confidence,
@@ -107,10 +73,6 @@ export const analysesRepository = {
     return result.rows[0] ?? null;
   },
 
-  /**
-   * Mengambil daftar analisis milik user — hanya kolom summary (NFR-011).
-   * Diurutkan dari yang terbaru.
-   */
   async findByUser(
     userId: string,
     pagination: PaginationParams,
@@ -126,10 +88,6 @@ export const analysesRepository = {
     return result.rows;
   },
 
-  /**
-   * Mengambil analisis terbaru dari sebuah CV.
-   * Digunakan oleh GET /cvs/:cvId/analysis.
-   */
   async findLatestByCvId(cvId: string): Promise<Analysis | null> {
     const result = await query<Analysis>(
       `SELECT id, cv_id, user_id, status, predicted_category, confidence,

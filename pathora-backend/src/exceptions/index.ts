@@ -1,13 +1,4 @@
-/**
- * exceptions/index.ts
- *
- * Barrel export untuk seluruh kelas exception.
- * Seluruh modul cukup mengimpor dari '@/exceptions' tanpa
- * perlu mengetahui path file individual (SDD §3.2).
- *
- * Urutan export: base → HTTP 4xx → HTTP 5xx/gateway
- */
-
+﻿
 export { HttpException } from "./base-error.js";
 export { AuthenticationError } from "./authentication-error.js";
 export { AuthorizationError } from "./authorization-error.js";

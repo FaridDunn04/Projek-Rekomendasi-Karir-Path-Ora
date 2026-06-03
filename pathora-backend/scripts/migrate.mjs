@@ -1,35 +1,26 @@
-// ESM migration runner — no "use strict" needed
-
+﻿
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
 import { runner } from "node-pg-migrate";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
-
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
   console.error("[migrate] ERROR: DATABASE_URL tidak ditemukan di .env");
   process.exit(1);
 }
-
 const rootDir = path.resolve(__dirname, "..");
 const migrationsDir = path.resolve(rootDir, "migrations");
-
 const baseOptions = {
   databaseUrl: DATABASE_URL,
   migrationsTable: "pgmigrations",
   dir: migrationsDir,
-  // Migration files are .cjs (CommonJS) to avoid ESM conflict with "type":"module"
   ignorePattern: "^(?!.*\.cjs$).*",
   verbose: true,
 };
-
 const [, , command = "up", ...rest] = process.argv;
-
 async function main() {
   try {
     switch (command) {
@@ -80,5 +71,4 @@ async function main() {
     process.exit(1);
   }
 }
-
 main();

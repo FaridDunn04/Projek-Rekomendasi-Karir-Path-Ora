@@ -1,10 +1,7 @@
-"use strict";
-
+﻿"use strict";
 exports.shorthands = undefined;
-
 exports.up = async function up(pgm) {
   pgm.createExtension("pgcrypto", { ifNotExists: true });
-
   pgm.createTable("categories", {
     code: {
       type: "text",
@@ -20,9 +17,6 @@ exports.up = async function up(pgm) {
       notNull: false,
     },
   });
-
-  // Seed data referensi kategori karir (DATA-004)
-  // Selaras dengan kategori pada docs/contract-api-Ai.json
   pgm.sql(`
     INSERT INTO categories (code, display_name, description) VALUES
       ('INFORMATION-TECHNOLOGY', 'Information Technology', 'Bidang IT & Software Development'),
@@ -33,7 +27,6 @@ exports.up = async function up(pgm) {
       ('FINANCE',                'Finance',                'Keuangan dan akuntansi')
   `);
 };
-
 exports.down = async function down(pgm) {
   pgm.dropTable("categories");
 };

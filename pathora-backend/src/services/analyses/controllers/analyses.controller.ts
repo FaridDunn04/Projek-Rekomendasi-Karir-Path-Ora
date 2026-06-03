@@ -1,35 +1,23 @@
-/**
- * services/analyses/controllers/analyses.controller.ts
- *
- * Controller untuk domain Analyses (FR-013..FR-014, FR-023, SDD §3.7.4).
- * Identitas user selalu dari req.user (JWT), tidak dari body (SEC-003).
- */
-
+﻿
 import type { Request, Response, NextFunction } from "express";
 import { response } from "../../../utils/response.js";
 import { parsePagination } from "../../../utils/pagination.js";
 
-// ── Dependency Interfaces ──────────────────────────────────────────────────────
-
 interface TriggerAnalysisUseCase {
   execute(cvId: string, userId: string): Promise<unknown>;
 }
-
 interface GetAnalysisUseCase {
   execute(analysisId: string, userId: string): Promise<unknown>;
 }
-
 interface GetLatestByCvUseCase {
   execute(cvId: string, userId: string): Promise<unknown>;
 }
-
 interface ListAnalysesUseCase {
   execute(
     userId: string,
     pagination: { limit: number; offset: number },
   ): Promise<{ analyses: unknown[]; meta: unknown }>;
 }
-
 interface AnalysesControllerDeps {
   triggerAnalysisUseCase: TriggerAnalysisUseCase;
   getAnalysisUseCase: GetAnalysisUseCase;
@@ -37,18 +25,13 @@ interface AnalysesControllerDeps {
   listAnalysesUseCase: ListAnalysesUseCase;
 }
 
-// ── Factory ────────────────────────────────────────────────────────────────────
-
 export function createAnalysesController({
   triggerAnalysisUseCase,
   getAnalysisUseCase,
   getLatestByCvUseCase,
   listAnalysesUseCase,
 }: AnalysesControllerDeps) {
-  /**
-   * POST /cvs/:cvId/analyze
-   * Memicu analisis CV via AI Gateway.
-   */
+
   async function trigger(
     req: Request,
     res: Response,
@@ -63,10 +46,6 @@ export function createAnalysesController({
     }
   }
 
-  /**
-   * GET /analyses/:analysisId
-   * Detail analisis dengan filtering tampilan (FR-016..FR-021).
-   */
   async function getOne(
     req: Request,
     res: Response,
@@ -84,10 +63,6 @@ export function createAnalysesController({
     }
   }
 
-  /**
-   * GET /cvs/:cvId/analysis
-   * Analisis terbaru dari sebuah CV.
-   */
   async function getLatestByCv(
     req: Request,
     res: Response,
@@ -102,10 +77,6 @@ export function createAnalysesController({
     }
   }
 
-  /**
-   * GET /analyses
-   * Riwayat analisis milik user dengan paginasi.
-   */
   async function list(
     req: Request,
     res: Response,
@@ -127,6 +98,5 @@ export function createAnalysesController({
       next(err);
     }
   }
-
   return { trigger, getOne, getLatestByCv, list };
 }

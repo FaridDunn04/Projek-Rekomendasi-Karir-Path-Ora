@@ -1,10 +1,7 @@
-"use strict";
-
+﻿"use strict";
 exports.shorthands = undefined;
-
 exports.up = async function up(pgm) {
   pgm.createExtension("pgcrypto", { ifNotExists: true });
-
   pgm.createTable("analyses", {
     id: {
       type: "uuid",
@@ -24,13 +21,11 @@ exports.up = async function up(pgm) {
       references: '"users"',
       onDelete: "CASCADE",
     },
-    // Status analisis: pending → success | failed (DATA-003)
     status: {
       type: "text",
       notNull: true,
       default: "pending",
     },
-    // Metadata utama disimpan terpisah untuk query dashboard/riwayat yang efisien (NFR-011)
     predicted_category: {
       type: "text",
       notNull: false,
@@ -39,7 +34,6 @@ exports.up = async function up(pgm) {
       type: "numeric(5,4)",
       notNull: false,
     },
-    // Payload penuh AI disimpan sebagai JSONB agar fleksibel terhadap perubahan model (DATA-005, NFR-018)
     result: {
       type: "jsonb",
       notNull: false,
@@ -54,15 +48,12 @@ exports.up = async function up(pgm) {
       default: pgm.func("NOW()"),
     },
   });
-
-  // CHECK constraint: status hanya boleh 'pending', 'success', atau 'failed' (DATA-003)
   pgm.addConstraint(
     "analyses",
     "analyses_status_check",
     `CHECK (status IN ('pending', 'success', 'failed'))`,
   );
 };
-
 exports.down = async function down(pgm) {
   pgm.dropTable("analyses");
 };
