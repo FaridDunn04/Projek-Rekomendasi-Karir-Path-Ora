@@ -1,110 +1,95 @@
+import { useState, useEffect } from "react";
+import { userService } from "../services/user.service";
+import { analysisService } from "../services/analysis.service";
 
+import { User, UpdateProfileRequest } from "../types/auth";
+import { Analysis } from "../types/analysis";
 
-// import { useState, useEffect } from "react";
-// import { userService } from "../services/user.service";
-// import { analysisService } from "../services/analysis.service";
-// import { User, UpdateProfileRequest } from "../types/auth";
-// import { Analysis, AnalysisListResponse } from "../types/analysis";
-// import { parseApiError } from "../utils/error";
+import { parseApiError } from "../utils/error";
 
-// export interface ProfileState {
-//   user: User | null;
-//   analyses: Analysis[];
-//   isLoadingUser: boolean;
-//   isLoadingAnalyses: boolean;
-//   isUpdating: boolean;
-//   error: string | null;
-// }
+export interface ProfileState {
+    user: User | null;
+    analyses: Analysis[];
+    isLoading: boolean;
+    isUpdating: boolean;
+    error: string | null;
+}
 
-// export function useProfile() {
-//   const [state, setState] = useState<ProfileState>({
-//     user: null,
-//     analyses: [],
-//     isLoadingUser: false,
-//     isLoadingAnalyses: false,
-//     isUpdating: false,
-//     error: null,
-//   });
+export function useProfile() {
+    const [state, setState] = useState<ProfileState>({
+        user: null,
+        analyses: [],
+        isLoading: true,
+        isUpdating: false,
+        error: null,
+    });
 
-//   // Fetch profile and analyses on mount
-//   useEffect(() => {
-//     const fetchProfile = async () => {
-//       setState((prev) => ({ ...prev, isLoadingUser: true, error: null }));
+    useEffect(() => {
+        fetchProfile();
+    }, []);
 
-//       try {
-//         const [user, analysesResponse] = await Promise.all([
-//           userService.getProfile(),
-//           analysisService.getAnalyses(1, 100),
-//         ]);
+    const fetchProfile = async () => {
+        try {
+            setState((prev) => ({
+                ...prev,
+                isLoading: true,
+                error: null,
+            }));
 
-//         setState((prev) => ({
-//           ...prev,
-//           user,
-//           analyses: analysesResponse.analyses,
-//           isLoadingUser: false,
-//         }));
-//       } catch (error: any) {
-//         setState((prev) => ({
-//           ...prev,
-//           error: parseApiError(error),
-//           isLoadingUser: false,
-//         }));
-//       }
-//     };
+            const [user, analysesResponse] = await Promise.all([
+                userService.getProfile(),
+                analysisService.getAnalyses(1, 100),
+            ]);
 
-//     fetchProfile();
-//   }, []);
+            setState((prev) => ({
+                ...prev,
+                user,
+                analyses: analysesResponse.analyses,
+                isLoading: false,
+            }));
+        } catch (error: any) {
+            setState((prev) => ({
+                ...prev,
+                error: parseApiError(error),
+                isLoading: false,
+            }));
+        }
+    };
 
-//   // Update profile
-//   const updateProfile = async (payload: UpdateProfileRequest): Promise<User | null> => {
-//     setState((prev) => ({ ...prev, isUpdating: true, error: null }));
+    const updateProfile = async (
+        payload: UpdateProfileRequest
+    ): Promise<User | null> => {
+        try {
+            setState((prev) => ({
+                ...prev,
+                isUpdating: true,
+                error: null,
+            }));
 
-//     try {
-//       const result = await userService.updateProfile(payload);
-//       setState((prev) => ({
-//         ...prev,
-//         user: result,
-//         isUpdating: false,
-//       }));
-//       return result;
-//     } catch (error: any) {
-//       setState((prev) => ({
-//         ...prev,
-//         error: parseApiError(error),
-//         isUpdating: false,
-//       }));
-//       return null;
-//     }
-//   };
+            const updatedUser =
+                await userService.updateProfile(payload);
 
-//   // Refresh profile and analyses
-//   const refresh = async () => {
-//     setState((prev) => ({ ...prev, isLoadingUser: true, error: null }));
+            setState((prev) => ({
+                ...prev,
+                user: updatedUser,
+                isUpdating: false,
+            }));
 
-//     try {
-//       const [user, analysesResponse] = await Promise.all([
-//         userService.getProfile(),
-//         analysisService.getAnalyses(1, 100),
-//       ]);
+            return updatedUser;
+        } catch (error: any) {
+            setState((prev) => ({
+                ...prev,
+                error: parseApiError(error),
+                isUpdating: false,
+            }));
 
-//       setState((prev) => ({
-//         ...prev,
-//         user,
-//         analyses: analysesResponse.analyses,
-//         isLoadingUser: false,
-//       }));
-//     } catch (error: any) {
-//       setState((prev) => ({
-//         ...prev,
-//         error: parseApiError(error),
-//         isLoadingUser: false,
-//       }));
-//     }
-//   };
+            return null;
+        }
+    };
 
-//   return {
-//     ...state,
-//     updateProfile,
-//     refresh,
-//   };
-// }
+    return {
+        ...state,
+        refresh: fetchProfile,
+        updateProfile,
+    };
+}

@@ -49,3 +49,72 @@ const DashboardPage: React.FC = () => {
 };
 
 export default DashboardPage;
+
+
+// import React from "react";
+// import AppLayout from "../../components/layout/AppLayout";
+
+// import SkorDashboard from "./SkorDashboard";
+// import UploadCv from "./UploadCv";
+// import Riwayat from "./Riwayat";
+
+// import { useDashboard } from "../../hooks/useDashboard";
+
+// const DashboardPage: React.FC = () => {
+//     const {
+//         summary,
+//         history,
+//         isLoading,
+//         error,
+//     } = useDashboard();
+
+//     if (isLoading) {
+//         return (
+//             <AppLayout>
+//                 <div className="p-10">
+//                     <p>Loading dashboard...</p>
+//                 </div>
+//             </AppLayout>
+//         );
+//     }
+
+//     if (error) {
+//         return (
+//             <AppLayout>
+//                 <div className="p-10">
+//                     <p className="text-red-500">{error}</p>
+//                 </div>
+//             </AppLayout>
+//         );
+//     }
+
+//     return (
+//         <AppLayout>
+//             {/* Header */}
+//             <div className="mb-8 ml-10">
+//                 <h1 className="text-3xl font-bold font-['Newsreader'] text-gray-900">
+//                     Dashboard Utama
+//                 </h1>
+
+//                 <p className="text-gray-600 mt-2 text-sm font-['Manrope',_sans-serif]">
+//                     Selamat datang. Berikut adalah ringkasan progress dan
+//                     kesiapan karir Anda berdasarkan analisis data terbaru.
+//                 </p>
+//             </div>
+
+//             {/* Main Content */}
+//             <div className="max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ml-10">
+//                 <SkorDashboard summary={summary} />
+
+//                 <UploadCv />
+//             </div>
+
+//             {/* Riwayat */}
+//             <div className="ml-10 mr-10">
+//                 <Riwayat history={history} />
+//             </div>
+//         </AppLayout>
+//     );
+// };
+
+// export default DashboardPage;

@@ -15,7 +15,7 @@ export const authService = {
         email: payload.email,
         password: payload.password,
       });
-      return response.data.data;
+      return response.data.data; 
     } catch (error: any) {
       throw {
         code: error.response?.data?.error?.code || "REGISTER_ERROR",

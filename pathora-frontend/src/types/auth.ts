@@ -7,10 +7,12 @@ export interface User {
   id: string;
   name: string;
   email: string;
+
+  profile_picture?: string | null;
+
   created_at: string;
   updated_at?: string;
 }
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -53,3 +55,4 @@ export interface AuthError {
   message: string;
   code: string;
 }
+

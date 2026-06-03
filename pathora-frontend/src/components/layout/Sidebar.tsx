@@ -44,6 +44,8 @@ const Sidebar: React.FC = () => {
             path: "/profile",
             icon: <User size={18}/>,
         },
+        
+        
     ];
 
     const isActive = (path: string) => location.pathname.startsWith(path);
