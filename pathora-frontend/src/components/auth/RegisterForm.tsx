@@ -37,14 +37,14 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
                     label="NAME"
                     placeholder="Enter Your Name"
                     className={`focus:ring-blue-500 ${
-                        errors.full_name
+                        errors.name
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300"
                     }`}
-                    {...register("full_name")}
+                    {...register("name")}
                 />
-                {errors.full_name && (
-                    <p className="text-red-500 text-xs -mt-3 mb-2">{errors.full_name.message}</p>
+                {errors.name && (
+                    <p className="text-red-500 text-xs -mt-3 mb-2">{errors.name.message}</p>
                 )}
 
                 {/* Input Email */}
@@ -84,19 +84,19 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
                 {/* Input Confirm Password */}
                 <Input
                     type="password"
-                    id="confirmPassword"
+                    id="password_confirm"
                     label="CONFIRM PASSWORD"
                     placeholder="••••••••"
                     className={`focus:ring-blue-500 ${
-                        errors.confirmPassword
+                        errors.password_confirm
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300"
                     }`}
-                    {...register("confirmPassword")}
+                    {...register("password_confirm")}
                 />
-                {errors.confirmPassword && (
+                {errors.password_confirm && (
                     <p className="text-red-500 text-xs -mt-3 mb-2">
-                        {errors.confirmPassword.message}
+                        {errors.password_confirm.message}
                     </p>
                 )}
 
