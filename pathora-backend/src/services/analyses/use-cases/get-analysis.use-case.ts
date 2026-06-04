@@ -1,5 +1,4 @@
-﻿
-import { NotFoundError } from "../../../exceptions/not-found-error.js";
+﻿import { NotFoundError } from "../../../exceptions/not-found-error.js";
 import { AuthorizationError } from "../../../exceptions/authorization-error.js";
 import type { Analysis } from "../repositories/analyses.repository.js";
 import type { AiAnalysisResult } from "../../ai-gateway/ai-response.schema.js";
@@ -12,7 +11,7 @@ interface GetAnalysisDeps {
 }
 
 const CONFIDENCE_THRESHOLD = 0.05;
-const MATCH_SCORE_THRESHOLD = 0.3;
+const MATCH_SCORE_THRESHOLD = 0;
 function applyFilters(result: AiAnalysisResult): AiAnalysisResult {
   return {
     ...result,
@@ -33,7 +32,6 @@ function applyFilters(result: AiAnalysisResult): AiAnalysisResult {
 
 export function createGetAnalysisUseCase({ analysesRepo }: GetAnalysisDeps) {
   return {
-
     async execute(analysisId: string, userId: string): Promise<Analysis> {
       const analysis = await analysesRepo.findById(analysisId);
       if (!analysis) {

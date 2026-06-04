@@ -4,5 +4,9 @@ import { MockAiGateway } from "./ai-gateway.mock.js";
 import type { AiGatewayAdapter } from "./ai-gateway.adapter.js";
 
 export function createAiGateway(): AiGatewayAdapter {
-  return  new HttpAiGateway();
+  if (config.USE_MOCK_AI) {
+    return new MockAiGateway();
+  } else {
+    return new HttpAiGateway();
+  }
 }

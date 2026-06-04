@@ -1,7 +1,7 @@
 ﻿
 import { Router } from "express";
-import { categoriesRepository } from "../repositories/categories.repository";
-import { createCategoriesController } from "../controllers/categories.controller";
+import { categoriesRepository } from "../repositories/categories.repository.js";
+import { createCategoriesController } from "../controllers/categories.controller.js";
 
 const { getAll } = createCategoriesController({
   categoriesRepo: categoriesRepository,

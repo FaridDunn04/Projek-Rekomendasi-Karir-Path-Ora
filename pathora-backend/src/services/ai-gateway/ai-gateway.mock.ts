@@ -1,5 +1,4 @@
-﻿
-import { validateAiResponse } from "../../utils/ai-schema-validator.js";
+﻿import { validateAiResponse } from "../../utils/ai-schema-validator.js";
 import type { AiGatewayAdapter, CvSource } from "./ai-gateway.adapter.js";
 import type { AiAnalysisResult } from "./ai-response.schema.js";
 
@@ -14,9 +13,9 @@ const MOCK_PAYLOAD = {
   top_5_predictions: [
     { category: "INFORMATION-TECHNOLOGY", confidence: 0.832 },
     { category: "ENGINEERING", confidence: 0.075 },
-    { category: "DIGITAL-MEDIA", confidence: 0.031 },
-    { category: "BUSINESS-DEVELOPMENT", confidence: 0.022 },
-    { category: "FINANCE", confidence: 0.018 },
+    { category: "DIGITAL-MEDIA", confidence: 0.061 },
+    { category: "BUSINESS-DEVELOPMENT", confidence: 0.052 },
+    { category: "FINANCE", confidence: 0.051 },
   ],
   extracted_skills: [
     {
@@ -76,7 +75,9 @@ const MOCK_PAYLOAD = {
   career_recommendations: [
     { category: "INFORMATION-TECHNOLOGY", match_score: 0.832 },
     { category: "ENGINEERING", match_score: 0.075 },
-    { category: "DIGITAL-MEDIA", match_score: 0.031 },
+    { category: "DIGITAL-MEDIA", match_score: 0.061 },
+    { category: "BUSINESS-DEVELOPMENT", match_score: 0.052 },
+    { category: "FINANCE", match_score: 0.051 },
   ],
   description_career_recommendations:
     "Based on the predicted category and extracted skills, the most suitable career paths " +
@@ -88,7 +89,6 @@ const MOCK_PAYLOAD = {
 };
 
 export class MockAiGateway implements AiGatewayAdapter {
-
   async analyze(_source: CvSource, cvId: string): Promise<AiAnalysisResult> {
     await sleep(200);
     const payload = { ...MOCK_PAYLOAD, cv_id: cvId };
