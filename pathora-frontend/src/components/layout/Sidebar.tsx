@@ -3,9 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/auth.store.ts";
 import logo from "../../images/logo.png";
 import {LayoutDashboard,Upload,ChartColumn,Route,User,CircleHelp,LogOut,X} from "lucide-react";
-
-
-
 /**
  * Sidebar Navigation Component
  * 

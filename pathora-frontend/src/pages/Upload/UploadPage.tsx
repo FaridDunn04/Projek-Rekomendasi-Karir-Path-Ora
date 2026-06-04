@@ -1,21 +1,41 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/layout/AppLayout";
-import { Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle, RefreshCw, Upload, X } from "lucide-react";
 import { useCVUpload } from "../../hooks/useCVUpload";
 import { useAnalysis } from "../../hooks/useAnalysis";
 
 const UploadPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedCvId, setUploadedCvId] = useState<string | null>(null);
+  const [analysisFailed, setAnalysisFailed] = useState(false);
+  const [isFeedbackOpen, setFeedbackOpen] = useState(false);
   const { uploadCV, isLoading, progress, error } = useCVUpload();
   const { analyzeCV, isAnalyzing, error: analyzeError } = useAnalysis();
+
+  const runAnalysis = async (cvId: string) => {
+    setAnalysisFailed(false);
+    setFeedbackOpen(true);
+    const analysisResult = await analyzeCV(cvId);
+
+    if (analysisResult?.id) {
+      navigate(`/analysis/${analysisResult.id}`);
+      return;
+    }
+
+    setAnalysisFailed(true);
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSelectedFile(file);
+    setUploadedCvId(null);
+    setAnalysisFailed(false);
+    setFeedbackOpen(false);
+
     const uploadResult = await uploadCV({
       source_type: "file",
       file,
@@ -23,13 +43,28 @@ const UploadPage: React.FC = () => {
 
     if (!uploadResult) return;
 
-    const analysisResult = await analyzeCV(uploadResult.id);
-    if (analysisResult?.id) {
-      navigate(`/analysis/${analysisResult.id}`);
-    }
+    setUploadedCvId(uploadResult.id);
+    setFeedbackOpen(true);
+    await runAnalysis(uploadResult.id);
   };
 
   const isProcessing = isLoading || isAnalyzing;
+  const errorMessage = error || analyzeError;
+  const showFeedbackModal =
+    isFeedbackOpen && (!!errorMessage || (!!uploadedCvId && !error));
+  const isAnalyzeError = analysisFailed && !!uploadedCvId;
+  const feedbackTitle = errorMessage
+    ? isAnalyzeError
+      ? "Analisis AI gagal diproses"
+      : "Upload CV gagal"
+    : "CV berhasil diunggah";
+  const feedbackMessage = errorMessage
+    ? errorMessage
+    : isAnalyzing
+      ? "Sistem sedang mengirim CV ke layanan AI."
+      : analysisFailed
+        ? "File sudah tersimpan. Analisis dapat dicoba ulang tanpa upload ulang."
+        : "CV sudah tersimpan dan analisis sedang diproses.";
 
   return (
     <AppLayout>
@@ -95,13 +130,57 @@ const UploadPage: React.FC = () => {
             </p>
           </div>
         )}
-
-        {(error || analyzeError) && (
-          <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200">
-            <p className="text-red-600 text-sm">{error || analyzeError}</p>
-          </div>
-        )}
       </div>
+
+      {showFeedbackModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setFeedbackOpen(false)}
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+              aria-label="Tutup pesan"
+            >
+              <X size={18} />
+            </button>
+
+            <div
+              className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${
+                errorMessage ? "bg-red-100" : "bg-green-100"
+              }`}
+            >
+              {errorMessage ? (
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              ) : (
+                <CheckCircle className="h-6 w-6 text-green-700" />
+              )}
+            </div>
+
+            <h2
+              className={`pr-8 text-2xl font-semibold font-['Newsreader'] ${
+                errorMessage ? "text-red-700" : "text-[#102619]"
+              }`}
+            >
+              {feedbackTitle}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              {feedbackMessage}
+            </p>
+
+            {isAnalyzeError && (
+              <button
+                type="button"
+                onClick={() => runAnalysis(uploadedCvId)}
+                disabled={isAnalyzing}
+                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#102619] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3a26] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <RefreshCw size={16} />
+                Coba Analisis Ulang
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 };
