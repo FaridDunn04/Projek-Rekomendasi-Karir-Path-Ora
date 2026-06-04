@@ -68,8 +68,9 @@ const UploadPage: React.FC = () => {
 
   return (
     <AppLayout>
-      <div className="mb-7 ml-10">
-        <h1 className="text-3xl font-bold font-['Newsreader'] text-gray-900">
+      {/* Header - Menggunakan padding responsif pengganti ml-10 */}
+      <div className="mb-6 md:mb-7 px-4 md:px-10 mt-4 md:mt-0">
+        <h1 className="text-2xl md:text-3xl font-bold font-['Newsreader'] text-gray-900">
           Upload Curriculum Vitae
         </h1>
         <p className="text-gray-600 mt-2 text-sm font-['Manrope',_sans-serif]">
@@ -79,66 +80,71 @@ const UploadPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="w-full max-w-2xl mx-auto p-10 bg-white rounded-3xl border border-gray-200 font-['Newsreader']">
-        <label
-          htmlFor="file-upload"
-          className="border border-dashed border-gray-400 rounded-3xl h-[340px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
-        >
-          <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mb-8">
-            <Upload size={32} />
-          </div>
-
-          <h2 className="text-3xl mb-3">Drag & Drop your document</h2>
-          <p className="text-gray-500 text-center max-w-md mb-8">
-            Supported formats: PDF, DOC, DOCX up to 10MB. Ensure your document
-            is unlocked for optimal extraction.
-          </p>
-
-          <span className="bg-[#061B0E] text-white px-8 py-3 rounded-lg">
-            BROWSE FILES
-          </span>
-
-          <input
-            id="file-upload"
-            type="file"
-            accept=".pdf,.doc,.docx"
-            className="hidden"
-            disabled={isProcessing}
-            onChange={handleFileChange}
-          />
-        </label>
-
-        {selectedFile && (
-          <div className="mt-6">
-            <p className="text-sm text-gray-500 mb-1">File Dipilih</p>
-            <p className="font-medium text-[#102619]">{selectedFile.name}</p>
-          </div>
-        )}
-
-        {isProcessing && (
-          <div className="mt-6">
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#102619] transition-all duration-300"
-                style={{ width: `${isAnalyzing ? 100 : progress}%` }}
-              />
+      {/* Container utama dibungkus padding agar sejajar dengan header di mobile */}
+      <div className="px-4 md:px-10 pb-8">
+        <div className="w-full max-w-2xl mx-auto p-6 md:p-10 bg-white rounded-3xl border border-gray-200 font-['Newsreader']">
+          <label
+            htmlFor="file-upload"
+            className="border border-dashed border-gray-400 rounded-3xl min-h-[280px] md:h-[340px] p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition text-center"
+          >
+            {/* Ikon diperkecil sedikit di mobile */}
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-200 flex items-center justify-center mb-6 md:mb-8">
+              <Upload className="w-6 h-6 md:w-8 md:h-8" />
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              {isAnalyzing
-                ? "Menganalisis CV..."
-                : `Uploading... ${progress}%`}
+
+            <h2 className="text-2xl md:text-3xl mb-3 text-[#102619]">Drag & Drop your document</h2>
+            <p className="text-gray-500 text-sm md:text-base max-w-md mb-6 md:mb-8">
+              Supported formats: PDF, DOC, DOCX up to 10MB. Ensure your document
+              is unlocked for optimal extraction.
             </p>
-          </div>
-        )}
+
+            <span className="bg-[#061B0E] text-white px-6 md:px-8 py-3 rounded-lg text-sm md:text-base font-medium">
+              BROWSE FILES
+            </span>
+
+            <input
+              id="file-upload"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="hidden"
+              disabled={isProcessing}
+              onChange={handleFileChange}
+            />
+          </label>
+
+          {selectedFile && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <p className="text-xs md:text-sm text-gray-500 mb-1">File Dipilih</p>
+              <p className="font-medium text-sm md:text-base text-[#102619] truncate">{selectedFile.name}</p>
+            </div>
+          )}
+
+          {isProcessing && (
+            <div className="mt-6">
+              <div className="h-2 md:h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#102619] transition-all duration-300"
+                  style={{ width: `${isAnalyzing ? 100 : progress}%` }}
+                />
+              </div>
+              <p className="text-xs md:text-sm text-gray-600 mt-2 font-['Manrope',_sans-serif]">
+                {isAnalyzing
+                  ? "Menganalisis CV..."
+                  : `Uploading... ${progress}%`}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Modal Feedback (Sudah cukup responsif, hanya memastikan padding aman di layar kecil) */}
       {showFeedbackModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <button
               type="button"
               onClick={() => setFeedbackOpen(false)}
-              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition"
               aria-label="Tutup pesan"
             >
               <X size={18} />
@@ -157,22 +163,22 @@ const UploadPage: React.FC = () => {
             </div>
 
             <h2
-              className={`pr-8 text-2xl font-semibold font-['Newsreader'] ${
+              className={`pr-8 text-xl md:text-2xl font-semibold font-['Newsreader'] ${
                 errorMessage ? "text-red-700" : "text-[#102619]"
               }`}
             >
               {feedbackTitle}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-gray-600">
+            <p className="mt-3 text-sm leading-6 text-gray-600 font-['Manrope',_sans-serif]">
               {feedbackMessage}
             </p>
 
             {isAnalyzeError && (
               <button
                 type="button"
-                onClick={() => runAnalysis(uploadedCvId)}
+                onClick={() => runAnalysis(uploadedCvId!)}
                 disabled={isAnalyzing}
-                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#102619] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3a26] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-5 w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-[#102619] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3a26] transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw size={16} />
                 Coba Analisis Ulang

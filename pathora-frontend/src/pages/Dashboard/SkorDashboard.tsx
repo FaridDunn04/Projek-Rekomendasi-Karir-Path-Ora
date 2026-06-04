@@ -15,12 +15,12 @@ const SkorDashboard: React.FC<Props> = ({ summary }) => {
   const circumference = 2 * Math.PI * 56;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 h-full">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col justify-between min-h-[280px]">
+      <h2 className="text-xl font-bold text-gray-900 mb-4 text-center md:text-left">
         Skor Kesiapan Kerja
       </h2>
 
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center my-auto">
         <div className="relative w-32 h-32 mb-4">
           <svg className="w-full h-full transform -rotate-90">
             <circle
@@ -44,17 +44,17 @@ const SkorDashboard: React.FC<Props> = ({ summary }) => {
           </svg>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-gray-900">
+            <span className="text-3xl font-bold text-gray-900">
               {confidence}
             </span>
             <span className="text-xs text-gray-500">/100</span>
           </div>
         </div>
 
-        <h3 className="text-center font-semibold text-gray-900 text-sm mb-2">
+        <h3 className="text-center font-bold text-gray-900 text-sm mb-1">
           {category}
         </h3>
-        <p className="text-center text-xs text-gray-500">
+        <p className="text-center text-xs text-gray-400">
           Total Analisis: {totalAnalysis}
         </p>
       </div>

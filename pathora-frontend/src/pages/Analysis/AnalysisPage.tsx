@@ -1,16 +1,65 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import AppLayout from "../../components/layout/AppLayout";
-import { Plane, SlidersHorizontal, Sparkles } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plane,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { useAnalysis } from "../../hooks/useAnalysis";
+import { analysisService } from "../../services/analysis.service";
+import { Analysis } from "../../types/analysis";
+import { parseApiError } from "../../utils/error";
 
 const AnalysisPage: React.FC = () => {
   const { analysisId } = useParams<{ analysisId: string }>();
-  const { analysis, isLoading, error } = useAnalysis(analysisId);
+  const detailState = useAnalysis(analysisId);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isListLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+  const isDetailMode = !!analysisId;
+  const analysis = isDetailMode
+    ? detailState.analysis
+    : analyses[currentIndex] ?? null;
+  const isLoading = isDetailMode ? detailState.isLoading : isListLoading;
+  const error = isDetailMode ? detailState.error : listError;
   const result = analysis?.result;
   const topPredictions = result?.top_predictions ?? [];
   const matchedSkills = result?.matched_skills ?? [];
   const missingSkills = result?.missing_skills ?? [];
+  const totalAnalyses = analyses.length;
+
+  useEffect(() => {
+    if (isDetailMode) return;
+
+    const fetchAnalyses = async () => {
+      setListLoading(true);
+      setListError(null);
+
+      try {
+        const result = await analysisService.getAllAnalyses();
+        setAnalyses(result);
+        setCurrentIndex(0);
+      } catch (error) {
+        setListError(parseApiError(error));
+      } finally {
+        setListLoading(false);
+      }
+    };
+
+    fetchAnalyses();
+  }, [isDetailMode]);
+
+  const goToPrevious = () => {
+    setCurrentIndex((current) => Math.max(current - 1, 0));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((current) => Math.min(current + 1, totalAnalyses - 1));
+  };
 
   if (isLoading) {
     return (
@@ -52,7 +101,9 @@ const AnalysisPage: React.FC = () => {
                 Hasil Analisis CV
               </h1>
               <p className="text-gray-600 mt-2 text-sm font-['Manrope',_sans-serif]">
-                Berikut hasil analisis CV berdasarkan data CV terakhir Anda.
+                {isDetailMode
+                  ? "Berikut hasil analisis CV berdasarkan data CV yang Anda pilih."
+                  : "Gunakan pagination untuk melihat hasil analisis dari tiap CV Anda."}
               </p>
             </div>
 
@@ -73,6 +124,42 @@ const AnalysisPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {!isDetailMode && totalAnalyses > 0 && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white px-5 py-4 shadow-sm">
+              <div>
+                <p className="text-sm font-semibold text-[#102619]">
+                  CV {currentIndex + 1} dari {totalAnalyses}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {analysis?.created_at
+                    ? new Date(analysis.created_at).toLocaleDateString("id-ID")
+                    : "Tanggal analisis tidak tersedia"}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={goToPrevious}
+                  disabled={currentIndex === 0}
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#102619] px-4 py-2 text-sm text-[#102619] hover:bg-[#102619] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft size={16} />
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNext}
+                  disabled={currentIndex >= totalAnalyses - 1}
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#102619] px-4 py-2 text-sm text-[#102619] hover:bg-[#102619] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Berikutnya
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
             <div className="bg-white rounded-2xl p-6 shadow-sm">

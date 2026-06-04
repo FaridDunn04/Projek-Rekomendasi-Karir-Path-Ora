@@ -51,6 +51,23 @@ const normalizeSkills = (skills?: BackendSkill[]): string[] =>
 const firstNonEmpty = (...skillGroups: string[][]): string[] =>
   skillGroups.find((skills) => skills.length > 0) ?? [];
 
+const findExtractedSkillsByCategory = (
+  extractedSkills: BackendExtractedSkills[],
+  category?: string,
+): BackendExtractedSkills | undefined =>
+  extractedSkills.find((item) => item.category === category);
+
+const normalizeConfidence = (value: unknown): number => {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : 0;
+
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
   const result = analysis.result;
   const rawTopPredictions =
@@ -86,6 +103,33 @@ export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
     topPredictionSkills?.missing_skills ?? [],
     normalizeSkills(topExtracted?.missing_skills),
   );
+  const careerRecommendations = (
+    result?.career_recommendations ??
+    analysis.career_recommendations ??
+    []
+  ).map((recommendation) => {
+    const extracted = findExtractedSkillsByCategory(
+      extractedSkills,
+      recommendation.category,
+    );
+    const prediction = topPredictions.find(
+      (item) => item.category === recommendation.category,
+    );
+
+    return {
+      ...recommendation,
+      matched_skills: firstNonEmpty(
+        recommendation.matched_skills ?? [],
+        prediction?.matched_skills ?? [],
+        normalizeSkills(extracted?.matched_skills ?? extracted?.match_skills),
+      ),
+      missing_skills: firstNonEmpty(
+        recommendation.missing_skills ?? [],
+        prediction?.missing_skills ?? [],
+        normalizeSkills(extracted?.missing_skills),
+      ),
+    };
+  });
 
   const normalizedResult: AnalysisResult | null =
     result || analysis.predicted_category || topPredictions.length > 0
@@ -95,12 +139,11 @@ export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
             analysis.predicted_category ??
             topPredictions[0]?.category ??
             "",
-          confidence: result?.confidence ?? analysis.confidence ?? 0,
+          confidence: normalizeConfidence(
+            result?.confidence ?? analysis.confidence,
+          ),
           top_predictions: topPredictions,
-          career_recommendations:
-            result?.career_recommendations ??
-            analysis.career_recommendations ??
-            [],
+          career_recommendations: careerRecommendations,
           description_career_recommendations:
             result?.description_career_recommendations ??
             analysis.description_career_recommendations ??
@@ -117,7 +160,9 @@ export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
     status: analysis.status ?? "success",
     predicted_category:
       analysis.predicted_category ?? normalizedResult?.predicted_category ?? "",
-    confidence: analysis.confidence ?? normalizedResult?.confidence ?? 0,
+    confidence: normalizeConfidence(
+      analysis.confidence ?? normalizedResult?.confidence,
+    ),
     result: normalizedResult,
     analyzed_at: analysis.analyzed_at,
     created_at: analysis.created_at ?? analysis.analyzed_at ?? "",
@@ -211,6 +256,35 @@ export const analysisService = {
    */
   async getAnalysisHistory(limit: number = 5): Promise<AnalysisListResponse> {
     return this.getAnalyses(1, limit);
+  },
+
+  /**
+   * Get semua analisis pengguna untuk halaman utama dengan pagination client-side.
+   * Backend tetap dipanggil per batch agar mengikuti kontrak limit/offset.
+   */
+  async getAllAnalyses(batchSize: number = 50): Promise<Analysis[]> {
+    const firstPage = await this.getAnalyses(1, batchSize);
+    const analyses = [...firstPage.analyses];
+    const totalPages = Math.ceil(firstPage.total / batchSize);
+
+    for (let page = 2; page <= totalPages; page += 1) {
+      const nextPage = await this.getAnalyses(page, batchSize);
+      analyses.push(...nextPage.analyses);
+    }
+
+    const detailedAnalyses = await Promise.all(
+      analyses.map(async (analysis) => {
+        if (!analysis.id) return analysis;
+
+        try {
+          return await this.getAnalysis(analysis.id);
+        } catch {
+          return analysis;
+        }
+      }),
+    );
+
+    return detailedAnalyses;
   },
 
   /**

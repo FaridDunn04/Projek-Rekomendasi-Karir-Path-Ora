@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../store/auth.store.ts";
 import { Sun, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
+import { userService } from "../../services/user.service.ts";
 
 interface NavbarProps {
     onMenuClick: () => void;
@@ -10,7 +11,44 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({
     onMenuClick,
 }) => {
-    const user = useAuthStore((state) => state.user);
+    const { user, token, setUser } = useAuthStore();
+    const [isProfileLoading, setProfileLoading] = useState(false);
+    const profileRequestId = useRef(0);
+
+    useEffect(() => {
+        if (!token) {
+            setProfileLoading(false);
+            return;
+        }
+
+        if (user) {
+            setProfileLoading(false);
+            return;
+        }
+
+        const requestId = profileRequestId.current + 1;
+        profileRequestId.current = requestId;
+        setProfileLoading(true);
+
+        userService
+            .getProfile()
+            .then((profile) => {
+                if (profileRequestId.current === requestId) {
+                    setUser(profile);
+                }
+            })
+            .catch(() => undefined)
+            .finally(() => {
+                if (profileRequestId.current === requestId) {
+                    setProfileLoading(false);
+                }
+            });
+    }, [token, user, setUser]);
+
+    const displayName = isProfileLoading ? "Memuat..." : user?.name || "User";
+    const displayEmail = isProfileLoading
+        ? "Mengambil profil..."
+        : user?.email || "email@example.com";
 
     return (
         <nav className="h-16 bg-[#F4F9F4] border-b shadow flex items-center px-4 md:px-6 z-30">
@@ -32,11 +70,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center gap-3 pl-4 ">
                     <div className="hidden sm:flex flex-col items-end">
                         <p className="text-sm font-medium hidden md:flex">
-                            {user?.name || "User"}
+                            {displayName}
                         </p>
 
                         <p className="text-xs text-gray-500 hidden md:flex">
-                            {user?.email || "email@example.com"}
+                            {displayEmail}
                         </p>
                     </div>
 
