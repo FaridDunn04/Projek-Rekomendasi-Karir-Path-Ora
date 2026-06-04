@@ -6,7 +6,7 @@ import Riwayat from "./Riwayat";
 import { useDashboard } from "../../hooks/useDashboard";
 
 const DashboardPage: React.FC = () => {
-  const { summary, history, isLoading, error } = useDashboard();
+  const { summary, history, isLoading, error, refresh } = useDashboard();
 
   return (
     <AppLayout>
@@ -48,7 +48,7 @@ const DashboardPage: React.FC = () => {
               Memuat riwayat analisis...
             </div>
           ) : (
-            <Riwayat history={history} />
+            <Riwayat history={history} onDeleted={refresh} />
           )}
         </div>
         

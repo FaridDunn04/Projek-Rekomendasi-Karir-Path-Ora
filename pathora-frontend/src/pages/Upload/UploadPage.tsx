@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/layout/AppLayout";
-import { AlertTriangle, CheckCircle, RefreshCw, Upload, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  LoaderCircle,
+  Upload,
+  X,
+} from "lucide-react";
 import { useCVUpload } from "../../hooks/useCVUpload";
 import { useAnalysis } from "../../hooks/useAnalysis";
 
@@ -11,6 +17,7 @@ const UploadPage: React.FC = () => {
   const [uploadedCvId, setUploadedCvId] = useState<string | null>(null);
   const [analysisFailed, setAnalysisFailed] = useState(false);
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const { uploadCV, isLoading, progress, error } = useCVUpload();
   const { analyzeCV, isAnalyzing, error: analyzeError } = useAnalysis();
 
@@ -25,6 +32,15 @@ const UploadPage: React.FC = () => {
     }
 
     setAnalysisFailed(true);
+  };
+
+  const resetUploadFlow = () => {
+    setSelectedFile(null);
+    setUploadedCvId(null);
+    setAnalysisFailed(false);
+    setFeedbackOpen(false);
+    setFileInputKey((current) => current + 1);
+    navigate("/upload", { replace: true });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,14 +73,16 @@ const UploadPage: React.FC = () => {
     ? isAnalyzeError
       ? "Analisis AI gagal diproses"
       : "Upload CV gagal"
-    : "CV berhasil diunggah";
+    : isAnalyzing
+      ? "Analisis CV sedang berjalan"
+      : "CV berhasil diunggah";
   const feedbackMessage = errorMessage
     ? errorMessage
     : isAnalyzing
-      ? "Sistem sedang mengirim CV ke layanan AI."
+      ? "Sistem sedang membaca CV, mengekstrak skill, dan menghitung rekomendasi karir. Proses ini dapat memakan waktu beberapa saat."
       : analysisFailed
-        ? "File sudah tersimpan. Analisis dapat dicoba ulang tanpa upload ulang."
-        : "CV sudah tersimpan dan analisis sedang diproses.";
+        ? "File sudah tersimpan, tetapi analisis gagal. Silakan upload file lagi untuk memulai analisis baru."
+        : "CV sudah tersimpan dan hasil analisis siap ditampilkan.";
 
   return (
     <AppLayout>
@@ -103,6 +121,7 @@ const UploadPage: React.FC = () => {
             </span>
 
             <input
+              key={fileInputKey}
               id="file-upload"
               type="file"
               accept=".pdf,.doc,.docx"
@@ -144,7 +163,8 @@ const UploadPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setFeedbackOpen(false)}
-              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition"
+              disabled={isAnalyzing}
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Tutup pesan"
             >
               <X size={18} />
@@ -152,11 +172,17 @@ const UploadPage: React.FC = () => {
 
             <div
               className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${
-                errorMessage ? "bg-red-100" : "bg-green-100"
+                errorMessage
+                  ? "bg-red-100"
+                  : isAnalyzing
+                    ? "bg-[#E8F5EA]"
+                    : "bg-green-100"
               }`}
             >
               {errorMessage ? (
                 <AlertTriangle className="h-6 w-6 text-red-600" />
+              ) : isAnalyzing ? (
+                <LoaderCircle className="h-7 w-7 animate-spin text-[#102619]" />
               ) : (
                 <CheckCircle className="h-6 w-6 text-green-700" />
               )}
@@ -173,15 +199,37 @@ const UploadPage: React.FC = () => {
               {feedbackMessage}
             </p>
 
+            {isAnalyzing && (
+              <div className="mt-5">
+                <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                  <div className="h-full w-2/3 animate-pulse rounded-full bg-[#102619]" />
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#102619]" />
+                    Membaca isi CV
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#102619]" />
+                    Mengekstrak skill dan pengalaman
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#102619]" />
+                    Menyusun prediksi karir
+                  </div>
+                </div>
+              </div>
+            )}
+
             {isAnalyzeError && (
               <button
                 type="button"
-                onClick={() => runAnalysis(uploadedCvId!)}
+                onClick={resetUploadFlow}
                 disabled={isAnalyzing}
                 className="mt-5 w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-[#102619] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3a26] transition disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <RefreshCw size={16} />
-                Coba Analisis Ulang
+                <Upload size={16} />
+                Upload File Lagi
               </button>
             )}
           </div>
