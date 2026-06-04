@@ -11,7 +11,7 @@ const CareerRecommendationsPage: React.FC = () => {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#F7F6F2] px-10 pt-0 pb-8 font-['Newsreader']">
+      <div className="min-h-screen bg-[#F4F9F4] px-10 pt-0 pb-8 font-['Newsreader']">
         <div className="max-w-7xl mx-auto">
           <div className="mb-7">
             <h1 className="text-3xl font-bold font-['Newsreader'] text-gray-900">

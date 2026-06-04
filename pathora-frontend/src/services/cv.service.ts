@@ -1,5 +1,6 @@
 import { apiClient } from "./api.client";
 import { API_ROUTES } from "../constants/api-routes";
+import { ENV } from "../constants/environment";
 import { ApiResponse } from "../types/api";
 import {
   CV,
@@ -55,6 +56,8 @@ export const cvService = {
           error.response?.data?.error?.message ||
           error.message ||
           "Gagal mengunggah CV",
+        status: error.response?.status || error.status,
+        details: error.response?.data?.error?.details || error.details,
       };
     }
   },
@@ -79,6 +82,8 @@ export const cvService = {
           error.response?.data?.error?.message ||
           error.message ||
           "Gagal mengambil CV",
+        status: error.response?.status || error.status,
+        details: error.response?.data?.error?.details || error.details,
       };
     }
   },
@@ -92,6 +97,10 @@ export const cvService = {
     try {
       const response = await apiClient.post<ApiResponse<AnalyzeResponse>>(
         API_ROUTES.CVS.ANALYZE(cvId),
+        undefined,
+        {
+          timeout: ENV.AI_TIMEOUT_MS + 5000,
+        },
       );
       if (!response.data.data) {
         throw new Error("Analyze response tidak valid");
@@ -105,6 +114,8 @@ export const cvService = {
           error.response?.data?.error?.message ||
           error.message ||
           "Gagal menganalisis CV",
+        status: error.response?.status || error.status,
+        details: error.response?.data?.error?.details || error.details,
       };
     }
   },
@@ -143,6 +154,8 @@ export const cvService = {
           error.response?.data?.error?.message ||
           error.message ||
           "Gagal mengambil daftar CV",
+        status: error.response?.status || error.status,
+        details: error.response?.data?.error?.details || error.details,
       };
     }
   },
@@ -162,6 +175,8 @@ export const cvService = {
           error.response?.data?.error?.message ||
           error.message ||
           "Gagal menghapus CV",
+        status: error.response?.status || error.status,
+        details: error.response?.data?.error?.details || error.details,
       };
     }
   },

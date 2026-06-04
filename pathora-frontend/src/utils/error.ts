@@ -16,6 +16,23 @@ export const isNetworkError = (error: unknown): boolean =>
 export function parseApiError(error: unknown): string {
   if (error && typeof error === "object" && "message" in error) {
     const apiError = error as ApiError;
+    const code = apiError.code?.toLowerCase();
+    if (
+      code === "timeout" ||
+      apiError.status === 504 ||
+      apiError.message.toLowerCase().includes("tidak merespons")
+    ) {
+      return apiError.message || "Layanan AI tidak merespons. Coba lagi.";
+    }
+    if (
+      code === "invalid_response" ||
+      apiError.message.toLowerCase().includes("bukan json")
+    ) {
+      return apiError.message || "Respons AI tidak valid. Coba analisis ulang.";
+    }
+    if (code === "upstream_error" || apiError.status === 502) {
+      return apiError.message || "Layanan AI sedang bermasalah. Coba lagi.";
+    }
     if (typeof apiError.message === "string" && apiError.message.trim()) {
       return apiError.message;
     }

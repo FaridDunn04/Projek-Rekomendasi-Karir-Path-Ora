@@ -43,13 +43,20 @@ apiClient.interceptors.response.use(
 
     if (error.response) {
       const data = error.response.data as any;
+      const details = data?.error?.details;
       normalizedError = {
-        code: data?.error?.code || `HTTP_${error.response.status}`,
+        code:
+          data?.error?.code ||
+          data?.error?.type ||
+          details?.type ||
+          `HTTP_${error.response.status}`,
         message:
           data?.error?.message ||
           data?.message ||
           "Terjadi kesalahan pada server.",
         fields: data?.error?.fields,
+        status: error.response.status,
+        details,
       };
 
       if (error.response.status === 401) {

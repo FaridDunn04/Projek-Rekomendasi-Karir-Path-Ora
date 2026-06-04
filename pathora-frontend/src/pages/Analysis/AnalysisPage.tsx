@@ -65,7 +65,7 @@ const AnalysisPage: React.FC = () => {
 
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-gray-500">
-                  Prediksi Karier
+                  Skor prediksi Karier Teratas
                 </p>
                 <p className="font-medium text-[#102619]">
                   {result.predicted_category}
@@ -78,7 +78,7 @@ const AnalysisPage: React.FC = () => {
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="font-serif text-2xl text-[#102619]">
-                  Distribusi Prediksi
+                  Prediksi Karir
                 </h2>
                 <SlidersHorizontal className="w-5 h-5 text-gray-400" />
               </div>
@@ -86,7 +86,8 @@ const AnalysisPage: React.FC = () => {
               <div className="space-y-4">
                 {topPredictions.length > 0 ? (
                   topPredictions.map((prediction) => {
-                    const score = prediction.confidence ?? prediction.score ?? 0;
+                    const score =
+                      prediction.confidence ?? prediction.score ?? 0;
                     return (
                       <div key={prediction.category}>
                         <div className="flex justify-between text-sm mb-2">
@@ -114,7 +115,7 @@ const AnalysisPage: React.FC = () => {
               <div className="flex items-center gap-2 mb-6">
                 <Plane className="w-5 h-5 text-[#102619]" />
                 <h2 className="font-serif text-2xl text-[#102619]">
-                  Skill Gap Analysis
+                  Analisis Skill
                 </h2>
               </div>
 

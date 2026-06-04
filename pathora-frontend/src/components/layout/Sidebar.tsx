@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/auth.store.ts";
 import logo from "../../images/logo.png";
-import {LayoutDashboard,Upload,ChartColumn,Route,User,CircleHelp,LogOut} from "lucide-react";
+import {LayoutDashboard,Upload,ChartColumn,Route,User,CircleHelp,LogOut,X} from "lucide-react";
 /**
  * Sidebar Navigation Component
  * 
@@ -13,7 +13,14 @@ import {LayoutDashboard,Upload,ChartColumn,Route,User,CircleHelp,LogOut} from "l
  * 
  * Digunakan di: AppLayout
  */
-const Sidebar: React.FC = () => {
+
+
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     const location = useLocation();
     const { logout } = useAuthStore();
 
@@ -35,7 +42,7 @@ const Sidebar: React.FC = () => {
             icon: <ChartColumn size={18}/>,
         },
         {
-            label: "Career Recs",
+            label: "Career Path",
             path: "/career-recommendations",
             icon: <Route size={18}/>,
         },
@@ -60,7 +67,14 @@ const Sidebar: React.FC = () => {
     };
 
     return (
-        <aside className="w-64  text-white bg-[#FFFFFF] h-screen flex flex-col fixed left-0 top-0 shadow-lg">
+        <>
+        {isOpen && (
+            <div
+                onClick={onClose}
+                className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            />
+        )}
+        <aside className="w-64 text-white bg-[#FFFFFF] h-screen flex flex-col fixed left-0 top-0 shadow-lg">
             {/* Logo Section */}
             <div className="flex items-center gap-4 py-6 px-8 border-gray-200">
                 <div className="w-9 h-9 bg-black rounded-full flex items-center justify-center">
@@ -71,6 +85,14 @@ const Sidebar: React.FC = () => {
                 <h1 className="text-2xl font-bold font-['Newsreader'] text-gray-900">
                     Path'Ora
                 </h1>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="ml-auto text-gray-700 lg:hidden"
+                    aria-label="Tutup sidebar"
+                >
+                    <X size={18} />
+                </button>
             </div>
 
             {/* Menu Items */}
@@ -110,6 +132,7 @@ const Sidebar: React.FC = () => {
                 </button>
             </div>
         </aside>
+        </>
     );
 };
 

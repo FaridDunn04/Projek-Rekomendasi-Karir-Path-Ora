@@ -10,20 +10,34 @@ import {
 
 type BackendSkill = string | { skill?: string; name?: string };
 
+type BackendPrediction = {
+  category: string;
+  confidence?: number;
+  score?: number;
+  matched_skills?: BackendSkill[];
+  match_skills?: BackendSkill[];
+  missing_skills?: BackendSkill[];
+};
+
+type BackendExtractedSkills = {
+  category?: string;
+  matched_skills?: BackendSkill[];
+  match_skills?: BackendSkill[];
+  missing_skills?: BackendSkill[];
+};
+
+type BackendAnalysisResult = Partial<AnalysisResult> & {
+  top_5_predictions?: BackendPrediction[];
+  extracted_skills?: BackendExtractedSkills[];
+  match_skills?: BackendSkill[];
+};
+
 type BackendAnalysis = Partial<Analysis> & {
   analysisId?: string;
-  top_5_predictions?: Array<{
-    category: string;
-    confidence?: number;
-    score?: number;
-    matched_skills?: BackendSkill[];
-    missing_skills?: BackendSkill[];
-  }>;
-  extracted_skills?: Array<{
-    category?: string;
-    matched_skills?: BackendSkill[];
-    missing_skills?: BackendSkill[];
-  }>;
+  result?: BackendAnalysisResult | null;
+  top_5_predictions?: BackendPrediction[];
+  extracted_skills?: BackendExtractedSkills[];
+  match_skills?: BackendSkill[];
   career_recommendations?: AnalysisResult["career_recommendations"];
   description_career_recommendations?: string;
 };
@@ -34,24 +48,53 @@ const skillName = (skill: BackendSkill): string =>
 const normalizeSkills = (skills?: BackendSkill[]): string[] =>
   (skills ?? []).map(skillName).filter(Boolean);
 
+const firstNonEmpty = (...skillGroups: string[][]): string[] =>
+  skillGroups.find((skills) => skills.length > 0) ?? [];
+
 export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
   const result = analysis.result;
-  const extracted = analysis.extracted_skills?.[0];
+  const rawTopPredictions =
+    result?.top_5_predictions ?? analysis.top_5_predictions ?? [];
   const topPredictions =
     result?.top_predictions ??
-    (analysis.top_5_predictions ?? []).map((prediction) => ({
+    rawTopPredictions.map((prediction) => ({
       category: prediction.category,
       score: prediction.score ?? prediction.confidence ?? 0,
       confidence: prediction.confidence ?? prediction.score ?? 0,
-      matched_skills: normalizeSkills(prediction.matched_skills),
+      matched_skills: normalizeSkills(
+        prediction.matched_skills ?? prediction.match_skills,
+      ),
       missing_skills: normalizeSkills(prediction.missing_skills),
     }));
+  const topCategory =
+    topPredictions[0]?.category ??
+    result?.predicted_category ??
+    analysis.predicted_category;
+  const extractedSkills = result?.extracted_skills ?? analysis.extracted_skills ?? [];
+  const topExtracted =
+    extractedSkills.find((item) => item.category === topCategory) ??
+    extractedSkills[0];
+  const topPredictionSkills = topPredictions[0];
+  const matchedSkills = firstNonEmpty(
+    result?.matched_skills ?? [],
+    normalizeSkills(result?.match_skills),
+    topPredictionSkills?.matched_skills ?? [],
+    normalizeSkills(topExtracted?.matched_skills ?? topExtracted?.match_skills),
+  );
+  const missingSkills = firstNonEmpty(
+    result?.missing_skills ?? [],
+    topPredictionSkills?.missing_skills ?? [],
+    normalizeSkills(topExtracted?.missing_skills),
+  );
 
   const normalizedResult: AnalysisResult | null =
-    result || analysis.predicted_category
+    result || analysis.predicted_category || topPredictions.length > 0
       ? {
           predicted_category:
-            result?.predicted_category ?? analysis.predicted_category ?? "",
+            result?.predicted_category ??
+            analysis.predicted_category ??
+            topPredictions[0]?.category ??
+            "",
           confidence: result?.confidence ?? analysis.confidence ?? 0,
           top_predictions: topPredictions,
           career_recommendations:
@@ -62,10 +105,8 @@ export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
             result?.description_career_recommendations ??
             analysis.description_career_recommendations ??
             "",
-          matched_skills:
-            result?.matched_skills ?? normalizeSkills(extracted?.matched_skills),
-          missing_skills:
-            result?.missing_skills ?? normalizeSkills(extracted?.missing_skills),
+          matched_skills: matchedSkills,
+          missing_skills: missingSkills,
         }
       : null;
 
