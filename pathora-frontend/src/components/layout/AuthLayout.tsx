@@ -1,4 +1,5 @@
 import React from "react";
+import FooterLayout from "./FooterLayout";
 
 interface AuthLayoutProps {
     title: string;
@@ -29,17 +30,7 @@ const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
                     {children}
                 </div>
             </div>
-                <footer className="flex justify-between items-center px-8 py-6 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] border-t text-xs text-gray-600 font-['Manrope',_sans-serif] ">
-                    <div>
-                        &copy; {new Date().getFullYear()} Path`Ora. All rights reserved.
-                    </div>
-                    <div className="flex gap-6">
-                        <a href="" className=" hover:underline">Terms of Service</a>
-                        <a href="" className=" hover:underline">Privacy Policy</a>
-                        <a href="" className=" hover:underline">Support</a>
-                    </div>
-                    
-                </footer>
+                <FooterLayout />
         </div>
     );
 };
