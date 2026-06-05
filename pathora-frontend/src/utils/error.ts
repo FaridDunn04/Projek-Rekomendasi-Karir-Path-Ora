@@ -80,6 +80,83 @@ export function parseApiError(error: unknown): string {
 }
 
 /**
+ * Parse error khusus ketika CV sedang dikirim ke layanan AI.
+ * Pesannya dibuat lebih jelas untuk user yang baru saja upload CV.
+ */
+export function parseAnalyzeCvError(error: unknown): string {
+  const fallbackMessage =
+    "CV Anda belum berhasil dianalisis. Silakan upload file lagi beberapa saat lagi.";
+
+  if (error && typeof error === "object" && "message" in error) {
+    const apiError = error as ApiError;
+    const code = apiError.code?.toLowerCase();
+    const message = apiError.message?.toLowerCase() ?? "";
+    const status = apiError.status;
+
+    if (
+      code === "timeout" ||
+      code === "timeout_error" ||
+      status === 504 ||
+      message.includes("tidak merespons") ||
+      message.includes("timeout")
+    ) {
+      return "Analisis CV membutuhkan waktu terlalu lama karena layanan AI belum merespons. Silakan upload file lagi dan coba beberapa saat lagi.";
+    }
+
+    if (
+      code === "invalid_response" ||
+      message.includes("bukan json") ||
+      message.includes("tidak valid")
+    ) {
+      return "Layanan AI mengirim hasil yang belum bisa dibaca oleh Path`Ora. Silakan upload file lagi untuk memulai analisis baru.";
+    }
+
+    if (
+      code === "upstream_error" ||
+      status === 502 ||
+      status === 503 ||
+      (typeof status === "number" && status >= 500)
+    ) {
+      return "Layanan AI sedang mengalami gangguan saat membaca CV Anda. File belum bisa dianalisis, silakan upload ulang beberapa saat lagi.";
+    }
+
+    if (status === 400 || status === 422) {
+      return "CV belum bisa dianalisis. Pastikan file berisi teks CV yang jelas, tidak terkunci, dan formatnya PDF";
+    }
+
+    if (status === 401) {
+      return "Sesi Anda sudah berakhir. Silakan login kembali sebelum melakukan analisis CV.";
+    }
+
+    if (status === 403) {
+      return "Anda tidak memiliki akses untuk menganalisis CV ini. Silakan upload CV baru dari akun Anda.";
+    }
+
+    if (status === 404) {
+      return "CV yang akan dianalisis tidak ditemukan. Silakan upload CV lagi.";
+    }
+  }
+
+  if (isNetworkError(error)) {
+    return "Koneksi ke server terputus saat memulai analisis CV. Periksa internet Anda lalu upload file lagi.";
+  }
+
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+
+    if (status === 504 || error.code === "ECONNABORTED") {
+      return "Analisis CV membutuhkan waktu terlalu lama. Silakan upload file lagi dan coba beberapa saat lagi.";
+    }
+
+    if (typeof status === "number" && status >= 500) {
+      return "Server analisis sedang bermasalah. Silakan upload file lagi beberapa saat lagi.";
+    }
+  }
+
+  return fallbackMessage;
+}
+
+/**
  * Check apakah error adalah 401 Unauthorized
  */
 export function isUnauthorizedError(error: unknown): boolean {

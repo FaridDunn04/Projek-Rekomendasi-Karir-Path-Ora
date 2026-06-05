@@ -22,20 +22,20 @@ const FooterLayout: React.FC<FooterLayoutProps> = ({
                 
                 {/* Copyright */}
                 <p className="text-center">
-                    &copy; {new Date().getFullYear()} Path'Ora. All rights reserved.
+                    &copy; {new Date().getFullYear()} Path'Ora. Semua hak dilindungi.
                 </p>
 
                 {/* Links - hanya tampil di md ke atas */}
                 <div className="hidden md:flex gap-6">
                     <a href="#" className="hover:text-gray-900 transition-colors">
-                        Privacy Policy
+                        Kebijakan Privasi
                     </a>
                     <a href="#" className="hover:text-gray-900 transition-colors">
-                        Terms of Service
+                        Syarat dan Ketentuan
                     </a>
                     {showSupportLink && (
                         <a href="#" className="hover:text-gray-900 transition-colors">
-                            Support
+                            Bantuan
                         </a>
                     )}
                 </div>

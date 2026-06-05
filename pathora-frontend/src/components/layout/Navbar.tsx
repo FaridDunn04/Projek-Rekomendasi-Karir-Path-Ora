@@ -61,7 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({
             });
     }, [token, user, setUser]);
 
-    const displayName = isProfileLoading ? "Memuat..." : user?.name || "User";
+    const displayName = isProfileLoading ? "Memuat..." : user?.name || "Pengguna";
     const displayEmail = isProfileLoading
         ? "Mengambil profil..."
         : user?.email || "email@example.com";
@@ -114,7 +114,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
                     <Link to="/profile">
                         <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white cursor-pointer hover:scale-105 transition">
-                            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                            {user?.name?.charAt(0)?.toUpperCase() || "P"}
                         </div>
                     </Link>
                 </div>

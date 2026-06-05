@@ -124,7 +124,11 @@ const MOCK_PAYLOAD_1 = {
         { skill: "Public Health Awareness", similarity: 0.69 },
         { skill: "Community Outreach", similarity: 0.63 },
       ],
-      missing_skills: ["Curriculum Development", "E-Learning", "Teaching Methods"],
+      missing_skills: [
+        "Curriculum Development",
+        "E-Learning",
+        "Teaching Methods",
+      ],
     },
     {
       category: "SOCIAL-WORK",
@@ -140,7 +144,11 @@ const MOCK_PAYLOAD_1 = {
         { skill: "Healthcare Administration", similarity: 0.47 },
         { skill: "Budget Planning", similarity: 0.41 },
       ],
-      missing_skills: ["Sales Strategy", "Market Research", "Business Planning"],
+      missing_skills: [
+        "Sales Strategy",
+        "Market Research",
+        "Business Planning",
+      ],
     },
   ],
   career_recommendations: [
@@ -177,7 +185,7 @@ const MOCK_PAYLOAD_2 = {
       matched_skills: [
         { skill: "Adobe Illustrator", similarity: 0.96 },
         { skill: "Figma", similarity: 0.93 },
-        { skill: "UI/UX Design", similarity: 0.90 },
+        { skill: "UI/UX Design", similarity: 0.9 },
       ],
       missing_skills: ["Motion Graphics", "3D Modeling", "Design Systems"],
     },
@@ -187,7 +195,11 @@ const MOCK_PAYLOAD_2 = {
         { skill: "Adobe Photoshop", similarity: 0.87 },
         { skill: "Content Creation", similarity: 0.81 },
       ],
-      missing_skills: ["Video Editing", "Podcast Production", "SEO Optimization"],
+      missing_skills: [
+        "Video Editing",
+        "Podcast Production",
+        "SEO Optimization",
+      ],
     },
     {
       category: "MARKETING",
@@ -195,7 +207,11 @@ const MOCK_PAYLOAD_2 = {
         { skill: "Brand Identity", similarity: 0.74 },
         { skill: "Social Media Design", similarity: 0.69 },
       ],
-      missing_skills: ["Digital Advertising", "Campaign Management", "Analytics"],
+      missing_skills: [
+        "Digital Advertising",
+        "Campaign Management",
+        "Analytics",
+      ],
     },
     {
       category: "ARCHITECTURE",
@@ -203,7 +219,11 @@ const MOCK_PAYLOAD_2 = {
         { skill: "Spatial Design", similarity: 0.61 },
         { skill: "Wireframing", similarity: 0.57 },
       ],
-      missing_skills: ["AutoCAD", "Structural Engineering", "Construction Planning"],
+      missing_skills: [
+        "AutoCAD",
+        "Structural Engineering",
+        "Construction Planning",
+      ],
     },
     {
       category: "ARTS",
@@ -259,7 +279,11 @@ const MOCK_PAYLOAD_3 = {
         { skill: "Negotiation", similarity: 0.82 },
         { skill: "Compliance Management", similarity: 0.78 },
       ],
-      missing_skills: ["Sales Strategy", "Partnership Development", "Market Expansion"],
+      missing_skills: [
+        "Sales Strategy",
+        "Partnership Development",
+        "Market Expansion",
+      ],
     },
     {
       category: "GOVERNMENT",
@@ -267,7 +291,11 @@ const MOCK_PAYLOAD_3 = {
         { skill: "Regulatory Affairs", similarity: 0.71 },
         { skill: "Policy Analysis", similarity: 0.66 },
       ],
-      missing_skills: ["Public Administration", "Legislative Drafting", "Government Relations"],
+      missing_skills: [
+        "Public Administration",
+        "Legislative Drafting",
+        "Government Relations",
+      ],
     },
     {
       category: "FINANCE",
@@ -275,7 +303,11 @@ const MOCK_PAYLOAD_3 = {
         { skill: "Corporate Governance", similarity: 0.59 },
         { skill: "Due Diligence", similarity: 0.55 },
       ],
-      missing_skills: ["Financial Modeling", "Investment Analysis", "Risk Assessment"],
+      missing_skills: [
+        "Financial Modeling",
+        "Investment Analysis",
+        "Risk Assessment",
+      ],
     },
     {
       category: "EDUCATION",
@@ -283,7 +315,11 @@ const MOCK_PAYLOAD_3 = {
         { skill: "Legal Writing", similarity: 0.49 },
         { skill: "Moot Court Training", similarity: 0.43 },
       ],
-      missing_skills: ["Curriculum Design", "Academic Research", "Teaching Methods"],
+      missing_skills: [
+        "Curriculum Design",
+        "Academic Research",
+        "Teaching Methods",
+      ],
     },
   ],
   career_recommendations: [
@@ -305,7 +341,7 @@ const MOCK_PAYLOAD_3 = {
 export class MockAiGateway implements AiGatewayAdapter {
   async analyze(_source: CvSource, cvId: string): Promise<AiAnalysisResult> {
     await sleep(200);
-    const payload = { ...MOCK_PAYLOAD_2, cv_id: cvId };
+    const payload = { ...MOCK_PAYLOAD, cv_id: cvId };
     return validateAiResponse(payload);
   }
 }

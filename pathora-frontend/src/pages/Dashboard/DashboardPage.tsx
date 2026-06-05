@@ -16,10 +16,10 @@ const DashboardPage: React.FC = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold font-['Newsreader'] text-gray-900">
-            Dashboard Utama
+            Beranda Utama
           </h1>
           <p className="text-gray-600 mt-2 text-sm font-['Manrope',_sans-serif]">
-            Selamat datang. Berikut adalah ringkasan progress dan kesiapan karir
+            Selamat datang. Berikut adalah ringkasan progres dan kesiapan karier
             Anda berdasarkan analisis data terbaru.
           </p>
         </div>

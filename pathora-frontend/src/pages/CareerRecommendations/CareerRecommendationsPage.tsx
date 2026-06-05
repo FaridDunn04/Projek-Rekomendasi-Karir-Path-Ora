@@ -62,18 +62,18 @@ const CareerRecommendationsPage: React.FC = () => {
           {/* Header Section */}
           <div className="mb-5 sm:mb-6 lg:mb-7 max-w-4xl">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-['Newsreader'] text-gray-900 leading-tight">
-              Rekomendasi Karir
+              Jalur Karier
             </h1>
             <p className="text-gray-500 mt-2 sm:mt-3 text-sm sm:text-base lg:text-sm font-['Manrope',_sans-serif] leading-6">
               {isDetailMode
-                ? "Berikut rekomendasi karir berdasarkan hasil analisis CV yang Anda pilih."
-                : "Berdasarkan analisis keterampilan dan latar belakang profesional Anda baru-baru ini, kami telah menyusun jalur karir berpotensi tinggi yang disesuaikan dengan profil unik Anda."}
+                ? "Berikut rekomendasi jalur karier berdasarkan hasil analisis CV yang Anda pilih."
+                : "Berdasarkan analisis Skill dan latar belakang profesional Anda, kami telah menyusun jalur karier berpotensi tinggi yang disesuaikan dengan profil Anda."}
             </p>
           </div>
 
           {isLoading && (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm text-gray-600 font-['Manrope',_sans-serif]">
-              Memuat rekomendasi karir...
+              Memuat rekomendasi jalur karier...
             </div>
           )}
 
@@ -99,7 +99,7 @@ const CareerRecommendationsPage: React.FC = () => {
 
                 <div>
                   <span className="text-gray-500 text-[10px] sm:text-xs lg:text-sm font-semibold uppercase tracking-wider">
-                    Confidence Score
+                    Skor Keyakinan
                   </span>
                   <p className="text-sm sm:text-base lg:text-lg font-bold text-[#A27A53] mt-1 font-['Newsreader']">
                     {(analysis.confidence * 100).toFixed(1)}%
@@ -170,7 +170,7 @@ const CareerRecommendationsPage: React.FC = () => {
                 ))
               ) : (
                 <div className="bg-white rounded-2xl p-8 text-center shadow-sm text-gray-500 font-['Manrope',_sans-serif]">
-                  Tidak ada rekomendasi karir tersedia.
+                  Tidak ada rekomendasi jalur karier tersedia.
                 </div>
               )}
             </div>

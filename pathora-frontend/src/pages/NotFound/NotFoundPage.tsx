@@ -6,7 +6,7 @@ const NotFoundContent = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const primaryTarget = isAuthenticated ? "/dashboard" : "/login";
-  const primaryLabel = isAuthenticated ? "Ke Dashboard" : "Ke Login";
+  const primaryLabel = isAuthenticated ? "Ke Beranda" : "Ke Halaman Masuk";
 
   return (
     <section className="min-h-[70vh] flex items-center justify-center px-4 py-10">
@@ -16,7 +16,7 @@ const NotFoundContent = () => {
         </div>
 
         <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-[#2A4033] dark:text-[#8FB399]">
-          404 Not Found
+          404 Tidak Ditemukan
         </p>
         <h1 className="font-['Newsreader'] text-4xl font-bold text-gray-900 dark:text-[#d1d5d1] sm:text-5xl">
           Halaman Tidak Ditemukan

@@ -6,7 +6,7 @@ const RegisterPage = () => {
     const { register, isSubmitting, error } = useAuth();
 
     return (
-        <AuthLayout title="Register" subtitle="Please enter your details to sign up your account">
+        <AuthLayout title="Daftar" subtitle="Masukkan detail Anda untuk membuat akun baru">
             <RegisterForm onSubmit={register} isSubmitting={isSubmitting} error={error} />
         </AuthLayout>
     );

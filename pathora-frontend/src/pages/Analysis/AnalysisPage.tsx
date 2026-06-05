@@ -103,7 +103,7 @@ const AnalysisPage: React.FC = () => {
               <p className="text-gray-600 mt-2 text-sm sm:text-base leading-6 font-['Manrope',_sans-serif]">
                 {isDetailMode
                   ? "Berikut hasil analisis CV berdasarkan data CV yang Anda pilih."
-                  : "Gunakan pagination untuk melihat hasil analisis dari tiap CV Anda."}
+                  : "Gunakan paginasi untuk melihat hasil analisis dari tiap CV Anda."}
               </p>
             </div>
 
@@ -272,7 +272,7 @@ const AnalysisPage: React.FC = () => {
                 to={`/career-recommendations/${analysis.id}`}
                 className="inline-block mt-6 sm:mt-8 px-5 sm:px-8 py-3 border border-[#102619] rounded-lg text-sm sm:text-base text-[#102619] hover:bg-[#102619] hover:text-white transition"
               >
-                LIHAT RENCANA AKSI DETAIL
+                LIHAT RENCANA AKSI TERPERINCI
               </Link>
             </div>
           </div>

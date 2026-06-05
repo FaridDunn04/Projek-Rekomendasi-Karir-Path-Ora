@@ -15,7 +15,7 @@ const UploadCv: React.FC = () => {
           <Upload size={24} className="text-white" />
         </div>
         <h3 className="text-2xl font-bold font-['Newsreader'] text-center mb-2">
-          Upload CV Baru
+          Unggah CV Baru
         </h3>
         <p className="text-center text-xs text-gray-300 px-4 mb-6 leading-relaxed">
           Analisis CV baru untuk mendapatkan rekomendasi karir yang lebih akurat

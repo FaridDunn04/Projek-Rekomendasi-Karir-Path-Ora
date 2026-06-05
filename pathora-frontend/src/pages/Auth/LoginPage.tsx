@@ -6,7 +6,7 @@ const LoginPage = () => {
     const { login, isSubmitting, error } = useAuth();
 
     return (
-        <AuthLayout title="Login" subtitle="Please enter your details to sign in your account">
+        <AuthLayout title="Masuk" subtitle="Masukkan detail akun Anda untuk melanjutkan">
             <LoginForm onSubmit={login} isSubmitting={isSubmitting} error={error} />
         </AuthLayout>
     );

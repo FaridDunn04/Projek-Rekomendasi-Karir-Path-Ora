@@ -27,7 +27,7 @@ const JobRecommendationCard: React.FC<JobRecommendationCardProps> = ({
       <div className="w-fit bg-[#F3F1EB] px-3 sm:px-4 py-2 sm:py-3 rounded-full flex items-center gap-2 shrink-0">
         <MapPin size={14} className="text-[#102619] shrink-0" />
         <span className="text-xs sm:text-sm font-medium text-[#102619] whitespace-nowrap">
-          {job.matchPercentage}% Match
+          {job.matchPercentage}% Sesuai
         </span>
       </div>
     </div>

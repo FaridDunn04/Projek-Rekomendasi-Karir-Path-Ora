@@ -11,7 +11,7 @@ const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-6 md:p-10 text-gray-600">Loading profile...</div>
+        <div className="p-6 md:p-10 text-gray-600">Memuat profil...</div>
       </AppLayout>
     );
   }
@@ -39,7 +39,7 @@ const ProfilePage: React.FC = () => {
       <div className="pathora-profile-page min-h-screen bg-[#F7F6F2] px-3 sm:px-5 lg:px-10 pt-4 lg:pt-0 pb-8 font-['Newsreader']">
         <div className="mb-5 sm:mb-6 lg:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold font-['Newsreader'] text-gray-900 leading-tight">
-            Profile
+            Profil
           </h1>
         </div>
 
@@ -85,12 +85,12 @@ const ProfilePage: React.FC = () => {
           <div className="pathora-history-card bg-white rounded-xl shadow-sm p-4 sm:p-5 lg:p-7 mt-5 lg:mt-10">
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-5 lg:mb-6">
               <h2 className="font-['Newsreader'] text-lg sm:text-xl lg:text-2xl font-bold text-[#102619]">
-                Analysis History
+                Riwayat Analisis
               </h2>
               {/* Teks "VIEW ALL ->" untuk mobile menyesuaikan gambar, atau Total Analisis untuk Desktop */}
               <div className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-widest text-gray-500 font-['Manrope',_sans-serif]">
                 <span className="hidden sm:inline">Total Analisis: {analyses.length}</span>
-                <span className="sm:hidden flex items-center gap-1 cursor-pointer">View All &rarr;</span>
+                <span className="sm:hidden flex items-center gap-1 cursor-pointer">Lihat Semua &rarr;</span>
               </div>
             </div>
 
@@ -109,7 +109,7 @@ const ProfilePage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                           {analysis.created_at
-                            ? new Date(analysis.created_at).toLocaleDateString("en-US", {
+                            ? new Date(analysis.created_at).toLocaleDateString("id-ID", {
                                 month: "short",
                                 day: "2-digit",
                                 year: "numeric",
@@ -123,7 +123,11 @@ const ProfilePage: React.FC = () => {
                               : "bg-[#EAEAEA] text-[#555555]"
                           }`}
                         >
-                          {analysis.status}
+                          {analysis.status === "success"
+                            ? "Berhasil"
+                            : analysis.status === "pending"
+                            ? "Diproses"
+                            : "Gagal"}
                         </span>
                       </div>
 
@@ -131,7 +135,7 @@ const ProfilePage: React.FC = () => {
                       <div className="flex justify-between items-end">
                         <div>
                           <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">
-                            Target Role
+                            Target Peran
                           </p>
                           <p className="font-bold text-[#102619] text-sm leading-snug">
                             {analysis.predicted_category}
@@ -154,13 +158,13 @@ const ProfilePage: React.FC = () => {
                     <thead>
                       <tr className="border-t border-b border-gray-200">
                         <th className="py-3 lg:py-4 text-left text-[10px] lg:text-xs uppercase tracking-widest text-gray-500 font-medium font-['Manrope',_sans-serif]">
-                          Date
+                          Tanggal
                         </th>
                         <th className="py-3 lg:py-4 text-left text-[10px] lg:text-xs uppercase tracking-widest text-gray-500 font-medium font-['Manrope',_sans-serif]">
-                          Target Role
+                          Target Peran
                         </th>
                         <th className="py-3 lg:py-4 text-center text-[10px] lg:text-xs uppercase tracking-widest text-gray-500 font-medium font-['Manrope',_sans-serif]">
-                          Score
+                          Skor
                         </th>
                         <th className="py-3 lg:py-4 text-right text-[10px] lg:text-xs uppercase tracking-widest text-gray-500 font-medium font-['Manrope',_sans-serif]">
                           Status
@@ -198,7 +202,11 @@ const ProfilePage: React.FC = () => {
                                   : "bg-gray-200 text-gray-700"
                               }`}
                             >
-                              {analysis.status}
+                              {analysis.status === "success"
+                                ? "Berhasil"
+                                : analysis.status === "pending"
+                                ? "Diproses"
+                                : "Gagal"}
                             </span>
                           </td>
                         </tr>
@@ -214,7 +222,7 @@ const ProfilePage: React.FC = () => {
               <div className="mt-6 lg:mt-8 flex justify-center sm:justify-end">
                 <div className="pathora-confidence-summary bg-[#F7F6F2] rounded-xl px-5 sm:px-6 py-4 w-full sm:w-auto text-center sm:text-left border border-gray-100">
                   <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 font-bold uppercase tracking-wider font-['Manrope',_sans-serif]">
-                    Rata-rata Confidence
+                    Rata-rata Keyakinan
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold font-['Newsreader'] text-[#102619] mt-1">
                     {averageConfidence}%

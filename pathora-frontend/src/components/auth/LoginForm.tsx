@@ -35,7 +35,7 @@ const LoginForm = ({ onSubmit, isSubmitting, error }: LoginFormProps) => {
                     type="email"
                     id="email"
                     label="EMAIL"
-                    placeholder="Enter Your Email"
+                    placeholder="Masukkan email Anda"
                     className={`focus:ring-blue-500 ${
                         errors.email
                             ? "border-red-500 focus:ring-red-500"
@@ -51,7 +51,7 @@ const LoginForm = ({ onSubmit, isSubmitting, error }: LoginFormProps) => {
                 <Input
                     type="password"
                     id="password"
-                    label="PASSWORD"
+                    label="KATA SANDI"
                     placeholder="••••••••"
                     className={`focus:ring-blue-500 ${
                         errors.password
@@ -71,15 +71,15 @@ const LoginForm = ({ onSubmit, isSubmitting, error }: LoginFormProps) => {
                          className="w-full bg-black text-white hover:bg-gray-800 py-2"
                         color="primary"
                     >
-                        {isSubmitting ? "Processing..." : "SIGN IN"}
+                        {isSubmitting ? "Memproses..." : "MASUK"}
                     </Button>
                 </div>
             </form>
 
             <p className="text-center text-xs text-gray-600 mt-3">
-                Don't Have an Account?{" "}
+                Belum punya akun?{" "}
                 <Link to="/register" className="text-gray-900 font-bold hover:underline">
-                    Sign Up Now
+                    Daftar Sekarang
                 </Link>
             </p>
         </>

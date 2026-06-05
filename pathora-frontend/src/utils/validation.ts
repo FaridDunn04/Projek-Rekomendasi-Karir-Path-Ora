@@ -22,9 +22,9 @@ export const loginSchema = z.object({
     .min(1, "Email harus diisi")
     .email("Format email tidak valid"),
   password: z
-    .string("Password harus diisi")
-    .min(1, "Password harus diisi")
-    .min(6, "Password minimal 6 karakter"),
+    .string("Kata sandi harus diisi")
+    .min(1, "Kata sandi harus diisi")
+    .min(6, "Kata sandi minimal 6 karakter"),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -45,13 +45,13 @@ export const registerSchema = z
       .min(1, "Email harus diisi")
       .email("Format email tidak valid"),
     password: z
-      .string("Password harus diisi")
-      .min(6, "Password minimal 6 karakter"),
+      .string("Kata sandi harus diisi")
+      .min(6, "Kata sandi minimal 6 karakter"),
     password_confirm: z
-      .string("Konfirmasi password harus diisi"),
+      .string("Konfirmasi kata sandi harus diisi"),
   })
   .refine((data) => data.password === data.password_confirm, {
-    message: "Password tidak cocok",
+    message: "Kata sandi tidak cocok",
     path: ["password_confirm"],
   });
 

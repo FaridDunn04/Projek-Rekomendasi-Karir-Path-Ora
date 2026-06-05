@@ -4,6 +4,22 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const booleanString = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true") {
+    return true;
+  }
+  if (normalized === "false") {
+    return false;
+  }
+
+  return value;
+}, z.boolean());
+
 const EnvSchema = z
   .object({
     NODE_ENV: z
@@ -18,7 +34,8 @@ const EnvSchema = z
     AI_BASE_URL: z.string().optional(),
     AI_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
     AI_API_KEY: z.string().optional(),
-    USE_MOCK_AI: z.coerce.boolean().default(false),
+    USE_MOCK_AI: booleanString.default(false),
+    use_mock_ai: booleanString.optional(),
     ALLOWED_ORIGINS: z.string().default("http://localhost:5173"),
     MAX_FILE_SIZE_MB: z.coerce.number().positive().default(5),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900_000),
@@ -28,6 +45,10 @@ const EnvSchema = z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
       .default("info"),
   })
+  .transform((c) => ({
+    ...c,
+    USE_MOCK_AI: c.use_mock_ai ?? c.USE_MOCK_AI,
+  }))
   .refine((c) => c.USE_MOCK_AI || !!c.AI_BASE_URL, {
     message:
       "AI_BASE_URL wajib diisi bila USE_MOCK_AI=false. " +

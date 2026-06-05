@@ -80,7 +80,7 @@ const Riwayat: React.FC<Props> = ({ history, onDeleted }) => {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden font-['Newsreader']">
       <div className="flex flex-col gap-3 px-6 py-4 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-bold text-gray-900">Riwayat Upload</h2>
+        <h2 className="text-lg font-bold text-gray-900">Riwayat Unggah</h2>
         {history.length > itemsPerPage && (
           <div className="flex items-center justify-between gap-3 sm:justify-end">
             <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -147,7 +147,11 @@ const Riwayat: React.FC<Props> = ({ history, onDeleted }) => {
                     {Math.round(item.confidence * 100)}%
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5 capitalize">
-                    {item.status}
+                    {item.status === "success"
+                      ? "Berhasil"
+                      : item.status === "pending"
+                      ? "Diproses"
+                      : "Gagal"}
                   </p>
                 </div>
 
@@ -204,7 +208,7 @@ const Riwayat: React.FC<Props> = ({ history, onDeleted }) => {
             </h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
               CV ini beserta hasil analisis yang terkait akan dihapus dari
-              dashboard Anda.
+              beranda Anda.
             </p>
 
             <div className="mt-6 flex justify-end gap-3">

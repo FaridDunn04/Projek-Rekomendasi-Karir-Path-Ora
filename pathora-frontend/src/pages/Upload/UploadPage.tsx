@@ -60,7 +60,13 @@ const UploadPage: React.FC = () => {
   const [isReplaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
   const [isReplacingFile, setReplacingFile] = useState(false);
   const [replaceError, setReplaceError] = useState<string | null>(null);
-  const { uploadCV, isLoading, progress, error } = useCVUpload();
+  const {
+    uploadCV,
+    isLoading,
+    progress,
+    error,
+    resetState: resetUploadState,
+  } = useCVUpload();
   const { analyzeCV, isAnalyzing, error: analyzeError } = useAnalysis();
 
   useEffect(() => {
@@ -70,6 +76,45 @@ const UploadPage: React.FC = () => {
       setUploadedMetadata(metadata);
     }
   }, []);
+
+  useEffect(() => {
+    const syncUploadedMetadata = () => {
+      const metadata = getStoredUploadedMetadata();
+      setUploadedMetadata((currentMetadata) => {
+        if (
+          currentMetadata?.cvId === metadata?.cvId &&
+          currentMetadata?.fileName === metadata?.fileName &&
+          currentMetadata?.fileSize === metadata?.fileSize &&
+          currentMetadata?.uploadedAt === metadata?.uploadedAt
+        ) {
+          return currentMetadata;
+        }
+
+        return metadata;
+      });
+      setUploadedCvId((currentCvId) => {
+        if (metadata?.cvId) return metadata.cvId;
+        return currentCvId && !selectedFile ? null : currentCvId;
+      });
+    };
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === UPLOADED_CV_METADATA_KEY) {
+        syncUploadedMetadata();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", syncUploadedMetadata);
+
+    const intervalId = window.setInterval(syncUploadedMetadata, 1000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", syncUploadedMetadata);
+      window.clearInterval(intervalId);
+    };
+  }, [selectedFile]);
 
   const persistUploadedMetadata = (metadata: UploadedCvMetadata) => {
     localStorage.setItem(UPLOADED_CV_METADATA_KEY, JSON.stringify(metadata));
@@ -103,6 +148,7 @@ const UploadPage: React.FC = () => {
     setCancelError(null);
     clearUploadedMetadata();
     setFeedbackOpen(false);
+    resetUploadState();
     setFileInputKey((current) => current + 1);
     navigate("/upload", { replace: true });
   };
@@ -207,6 +253,7 @@ const UploadPage: React.FC = () => {
   const showFeedbackModal =
     isFeedbackOpen && (!!errorMessage || (!!uploadedCvId && !error));
   const isAnalyzeError = analysisFailed && !!uploadedCvId;
+  const isUploadError = !!error && !isAnalyzeError;
   const shouldShowConsent =
     !!uploadedCvId &&
     !errorMessage &&
@@ -216,7 +263,7 @@ const UploadPage: React.FC = () => {
   const feedbackTitle = errorMessage
     ? isAnalyzeError
       ? "Analisis AI gagal diproses"
-      : "Upload CV gagal"
+      : "Unggah CV gagal"
     : isAnalyzing
       ? "Analisis CV sedang berjalan"
       : shouldShowConsent
@@ -229,7 +276,7 @@ const UploadPage: React.FC = () => {
       : shouldShowConsent
         ? "Path`Ora akan menggunakan AI untuk membaca dan menganalisis CV Anda, termasuk prediksi kategori karir, skill yang terdeteksi, skill yang perlu ditingkatkan, dan rekomendasi karir.\n\nData CV digunakan hanya untuk proses analisis dan menampilkan hasil kepada Anda."
         : analysisFailed
-          ? "File sudah tersimpan, tetapi analisis gagal. Silakan upload file lagi untuk memulai analisis baru."
+          ? "File sudah tersimpan, tetapi analisis gagal. Silakan unggah file lagi untuk memulai analisis baru."
           : "CV sudah tersimpan dan hasil analisis siap ditampilkan.";
 
   return (
@@ -237,7 +284,7 @@ const UploadPage: React.FC = () => {
       {/* Header - Menggunakan padding responsif pengganti ml-10 */}
       <div className="mb-6 md:mb-7 px-4 md:px-10 mt-4 md:mt-0">
         <h1 className="text-2xl md:text-3xl font-bold font-['Newsreader'] text-gray-900">
-          Upload Curriculum Vitae
+          Unggah CV
         </h1>
         <p className="text-gray-600 mt-2 text-sm font-['Manrope',_sans-serif]">
           Kirimkan riwayat profesional Anda untuk memulai analisis mendalam.
@@ -248,6 +295,39 @@ const UploadPage: React.FC = () => {
 
       {/* Container utama dibungkus padding agar sejajar dengan header di mobile */}
       <div className="px-4 md:px-10 pb-8">
+        <div className="w-full max-w-2xl mx-auto mb-5 rounded-2xl border border-[#8FB399]/40 bg-[#8FB399]/15 p-5 font-['Manrope',_sans-serif] text-[#102619] dark:border-[#8FB399]/25 dark:bg-[#0B2A18] dark:text-[#d1d5d1]">
+          <h2 className="font-['Newsreader'] text-xl font-semibold">
+            Pemberitahuan Format CV
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-gray-700 dark:text-[#d1d5d1]/80">
+            Pastikan CV yang Anda unggah menggunakan format ATS-friendly dan
+            hanya terdiri dari 1 kolom agar sistem dapat membaca serta
+            menganalisis isi CV dengan lebih akurat.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-gray-700 dark:text-[#d1d5d1]/80">
+            Hindari penggunaan desain kompleks seperti tabel, grafik, ikon
+            berlebihan, gambar, atau layout multi-kolom karena dapat mengganggu
+            proses analisis AI.
+          </p>
+          <div className="mt-4 rounded-xl bg-white/75 p-4 text-sm leading-6 dark:bg-[#051B0F]/55">
+            <p className="font-semibold text-[#102619] dark:text-[#8FB399]">
+              Format yang disarankan:
+            </p>
+            <p className="mt-1 text-gray-700 dark:text-[#d1d5d1]/80">
+              CV sederhana, rapi, berbasis teks, 1 kolom, dan mudah dibaca oleh
+              sistem.
+            </p>
+          </div>
+          <a
+            href="https://foto.kontan.co.id/bvTNQQtkFQ3kBFTmpmipyNVLJNM=/smart/filters:format(webp)/2024/05/08/706731588.jpg"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#102619] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3a26] dark:bg-[#8FB399] dark:text-[#051B0F] dark:hover:bg-[#b7d6c2]"
+          >
+            Lihat Contoh Template CV ATS
+          </a>
+        </div>
+
         <div className="w-full max-w-2xl mx-auto p-6 md:p-10 bg-white rounded-3xl border border-gray-200 font-['Newsreader']">
           <label
             htmlFor="file-upload"
@@ -259,15 +339,15 @@ const UploadPage: React.FC = () => {
             </div>
 
             <h2 className="text-2xl md:text-3xl mb-3 text-[#102619]">
-              Drag & Drop your document
+              Unggah Dokumen Anda
             </h2>
             <p className="text-gray-500 text-sm md:text-base max-w-md mb-6 md:mb-8">
-              Supported formats: PDF, DOC, DOCX up to 10MB. Ensure your document
-              is unlocked for optimal extraction.
+              Format yang didukung: PDF dibawah 10MB. Pastikan dokumen tidak
+              terkunci agar proses ekstraksi berjalan optimal.
             </p>
 
             <span className="bg-[#061B0E] text-white px-6 md:px-8 py-3 rounded-lg text-sm md:text-base font-medium">
-              BROWSE FILES
+              PILIH FILE
             </span>
 
             <input
@@ -344,7 +424,7 @@ const UploadPage: React.FC = () => {
               <p className="text-xs md:text-sm text-gray-600 mt-2 font-['Manrope',_sans-serif]">
                 {isAnalyzing
                   ? "Menganalisis CV..."
-                  : `Uploading... ${progress}%`}
+                  : `Mengunggah... ${progress}%`}
               </p>
             </div>
           )}
@@ -553,15 +633,15 @@ const UploadPage: React.FC = () => {
               </div>
             )}
 
-            {isAnalyzeError && (
+            {(isAnalyzeError || isUploadError) && (
               <button
                 type="button"
                 onClick={resetUploadFlow}
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || isLoading}
                 className="mt-5 w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-[#102619] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3a26] transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Upload size={16} />
-                Upload File Lagi
+                Unggah File Lagi
               </button>
             )}
           </div>

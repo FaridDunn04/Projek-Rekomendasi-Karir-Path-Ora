@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { analysisService } from "../services/analysis.service";
 import { cvService } from "../services/cv.service";
 import { Analysis, AnalyzeResponse } from "../types/analysis";
-import { parseApiError } from "../utils/error";
+import { parseAnalyzeCvError, parseApiError } from "../utils/error";
 
 export interface AnalysisState {
   analysis: Analysis | null;
@@ -64,7 +64,7 @@ export function useAnalysis(analysisId?: string) {
     } catch (error: any) {
       setState((prev) => ({
         ...prev,
-        error: parseApiError(error),
+        error: parseAnalyzeCvError(error),
         isAnalyzing: false,
       }));
       return null;

@@ -28,27 +28,27 @@ const Sidebar: React.FC<SidebarProps> = ({
     // Menu items sesuai PRD §3.0 Sitemap
     const menuItems = [
         {
-            label: "Dashboard",
+            label: "Beranda",
             path: "/dashboard",
             icon: <LayoutDashboard size={18}/>,
         },
         {
-            label: "Upload CV",
+            label: "Unggah CV",
             path: "/upload",
             icon: <Upload size={18}/>,
         },
         {
-            label: "Analysis",
+            label: "Analisis",
             path: "/analysis",
             icon: <ChartColumn size={18}/>,
         },
         {
-            label: "Career Path",
+            label: "Jalur Karier",
             path: "/career-recommendations",
             icon: <Route size={18}/>,
         },
         {
-            label: "Profile",
+            label: "Profil",
             path: "/profile",
             icon: <User size={18}/>,
         },
@@ -136,14 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     className="w-full flex items-center gap-3 hover:bg-[#b23b3b] hover:text-white text-[#0A2012] rounded-lg font-['Manrope',_sans-serif] py-2 px-4  transition-colors text-sm"
                 >
                     <CircleHelp size={18}/>
-                    <span>Support</span>
+                    <span>Bantuan</span>
                 </button>
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 hover:bg-[#b23b3b] hover:text-white text-[#0A2012] rounded-lg font-['Manrope',_sans-serif] py-2 px-4  transition-colors text-sm"
                 >
                     <LogOut size={18}/>
-                    <span>Logout</span>
+                    <span>Keluar</span>
                 </button>
             </div>
         </aside>

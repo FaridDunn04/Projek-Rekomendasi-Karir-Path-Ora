@@ -34,8 +34,8 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
         <Input
           type="text"
           id="full_name"
-          label="NAME"
-          placeholder="Enter Your Name"
+          label="NAMA"
+          placeholder="Masukkan nama Anda"
           className={`focus:ring-blue-500 ${
             errors.name
               ? "border-red-500 focus:ring-red-500"
@@ -54,7 +54,7 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
           type="email"
           id="email"
           label="EMAIL"
-          placeholder="Enter Your Email"
+          placeholder="Masukkan email Anda"
           className={`focus:ring-blue-500 ${
             errors.email
               ? "border-red-500 focus:ring-red-500"
@@ -72,7 +72,7 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
         <Input
           type="password"
           id="password"
-          label="PASSWORD"
+          label="KATA SANDI"
           placeholder="••••••••"
           className={`focus:ring-blue-500 ${
             errors.password
@@ -91,7 +91,7 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
         <Input
           type="password"
           id="password_confirm"
-          label="CONFIRM PASSWORD"
+          label="KONFIRMASI KATA SANDI"
           placeholder="••••••••"
           className={`focus:ring-blue-500 ${
             errors.password_confirm
@@ -113,15 +113,15 @@ const RegisterForm = ({ onSubmit, isSubmitting, error }: RegisterFormProps) => {
             className="w-full bg-black text-white hover:bg-gray-800 py-2"
             color="primary"
           >
-            {isSubmitting ? "Processing..." : "SIGN UP"}
+            {isSubmitting ? "Memproses..." : "DAFTAR"}
           </Button>
         </div>
       </form>
 
       <p className="text-center text-xs text-gray-600 mt-3">
-        Do You Already Have an Account?{" "}
+        Sudah punya akun?{" "}
         <Link to="/login" className="text-gray-900 font-bold hover:underline">
-          Sign In Now
+          Masuk Sekarang
         </Link>
       </p>
     </>
