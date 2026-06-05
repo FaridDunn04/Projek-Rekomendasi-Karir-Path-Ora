@@ -169,9 +169,9 @@ const UploadPage: React.FC = () => {
       ? "Sistem sedang membaca CV, mengekstrak skill, dan menghitung rekomendasi karir. Proses ini dapat memakan waktu beberapa saat."
       : shouldShowConsent
         ? "Path`Ora akan menggunakan AI untuk membaca dan menganalisis CV Anda, termasuk prediksi kategori karir, skill yang terdeteksi, skill yang perlu ditingkatkan, dan rekomendasi karir.\n\nData CV digunakan hanya untuk proses analisis dan menampilkan hasil kepada Anda."
-      : analysisFailed
-        ? "File sudah tersimpan, tetapi analisis gagal. Silakan upload file lagi untuk memulai analisis baru."
-        : "CV sudah tersimpan dan hasil analisis siap ditampilkan.";
+        : analysisFailed
+          ? "File sudah tersimpan, tetapi analisis gagal. Silakan upload file lagi untuk memulai analisis baru."
+          : "CV sudah tersimpan dan hasil analisis siap ditampilkan.";
 
   return (
     <AppLayout>
@@ -195,11 +195,13 @@ const UploadPage: React.FC = () => {
             className="border border-dashed border-gray-400 rounded-3xl min-h-[280px] md:h-[340px] p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition text-center"
           >
             {/* Ikon diperkecil sedikit di mobile */}
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-200 flex items-center justify-center mb-6 md:mb-8">
-              <Upload className="w-6 h-6 md:w-8 md:h-8" />
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center mb-6 md:mb-8 dark:bg-[#8FB399] dark:text-[#051B0F]">
+              <Upload className="w-6 h-6 md:w-8 md:h-8 text-[#102619] dark:text-[#051B0F]" />
             </div>
 
-            <h2 className="text-2xl md:text-3xl mb-3 text-[#102619]">Drag & Drop your document</h2>
+            <h2 className="text-2xl md:text-3xl mb-3 text-[#102619]">
+              Drag & Drop your document
+            </h2>
             <p className="text-gray-500 text-sm md:text-base max-w-md mb-6 md:mb-8">
               Supported formats: PDF, DOC, DOCX up to 10MB. Ensure your document
               is unlocked for optimal extraction.
@@ -222,8 +224,12 @@ const UploadPage: React.FC = () => {
 
           {selectedFile && (
             <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-xs md:text-sm text-gray-500 mb-1">File Dipilih</p>
-              <p className="font-medium text-sm md:text-base text-[#102619] truncate">{selectedFile.name}</p>
+              <p className="text-xs md:text-sm text-gray-500 mb-1">
+                File Dipilih
+              </p>
+              <p className="font-medium text-sm md:text-base text-[#102619] truncate">
+                {selectedFile.name}
+              </p>
             </div>
           )}
 

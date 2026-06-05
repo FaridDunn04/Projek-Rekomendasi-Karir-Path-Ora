@@ -78,7 +78,7 @@ const LoginForm = ({ onSubmit, isSubmitting, error }: LoginFormProps) => {
 
             <p className="text-center text-xs text-gray-600 mt-3">
                 Don't Have an Account?{" "}
-                <Link to="/register" className="text-blue-600 font-medium hover:underline">
+                <Link to="/register" className="text-gray-900 font-bold hover:underline">
                     Sign Up Now
                 </Link>
             </p>
