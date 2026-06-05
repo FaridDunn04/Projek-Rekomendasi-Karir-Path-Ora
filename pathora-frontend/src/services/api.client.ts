@@ -6,6 +6,8 @@ import axios, {
 import { ENV } from "../constants/environment";
 import { ApiError } from "../types/api";
 
+const UPLOADED_CV_METADATA_KEY = "pathora-uploaded-cv-metadata";
+
 export const apiClient = axios.create({
   baseURL: ENV.API_BASE_URL,
   timeout: 10000,
@@ -68,6 +70,7 @@ apiClient.interceptors.response.use(
         if (!isAuthRequest) {
           // useAuthStore.getState().logout();
           localStorage.removeItem("token");
+          localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
           window.location.href = "/login";
         }
       }

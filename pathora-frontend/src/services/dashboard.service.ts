@@ -68,7 +68,7 @@ export const dashboardService = {
    * GET /dashboard/analysis-history
    */
   async getAnalysisHistory(
-    limit: number = 5,
+    limit?: number,
   ): Promise<AnalysisHistoryResponse> {
     try {
       const response = await apiClient.get<
@@ -84,12 +84,14 @@ export const dashboardService = {
       }
 
       const recentHistory = data.recentHistory.map(normalizeHistoryItem);
+      const items =
+        typeof limit === "number" ? recentHistory.slice(0, limit) : recentHistory;
 
       return {
-        items: recentHistory.slice(0, limit),
+        items,
         total: recentHistory.length,
         page: 1,
-        limit,
+        limit: limit ?? recentHistory.length,
       };
     } catch (error: any) {
       throw {

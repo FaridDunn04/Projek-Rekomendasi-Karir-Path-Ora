@@ -157,4 +157,60 @@
   html.dark .animate-pulse {
     background-color: var(--pathora-tertiary) !important;
   }
+
+  html.dark .pathora-profile-page {
+    background-color: var(--pathora-neutral) !important;
+  }
+
+  html.dark .pathora-profile-card,
+  html.dark .pathora-history-card {
+    background-color: var(--pathora-surface) !important;
+    border: 1px solid var(--pathora-border);
+  }
+
+  html.dark .pathora-history-mobile-card,
+  html.dark .pathora-confidence-summary {
+    background-color: var(--pathora-surface-soft) !important;
+    border-color: var(--pathora-border) !important;
+  }
+
+  html.dark .pathora-history-table thead tr,
+  html.dark .pathora-history-table tbody tr {
+    border-color: var(--pathora-border) !important;
+  }
+
+  html.dark .pathora-history-table tbody tr:hover {
+    background-color: var(--pathora-tertiary) !important;
+  }
+
+  html.dark .pathora-history-card table,
+  html.dark .pathora-history-card th,
+  html.dark .pathora-history-card td {
+    color: var(--pathora-secondary) !important;
+  }
+
+  html.dark .pathora-history-card .bg-yellow-100 {
+    background-color: rgba(234, 179, 8, 0.18) !important;
+  }
+
+  html.dark .pathora-history-card .text-yellow-800 {
+    color: #facc15 !important;
+  }
+
+  html.dark .pathora-history-card .bg-gray-200,
+  html.dark .pathora-history-card .bg-\[\#EAEAEA\] {
+    background-color: rgba(209, 213, 209, 0.14) !important;
+  }
+
+  html.dark .pathora-history-card .text-\[\#555555\] {
+    color: var(--pathora-secondary) !important;
+  }
+}
+
+.icon-dark {
+  filter: brightness(0);
+}
+
+html.dark .icon-dark {
+  filter: brightness(0) invert(1);
 }

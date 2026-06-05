@@ -26,6 +26,8 @@ const mapUser = (user: BackendUser): User => ({
   updated_at: user.updated_at,
 });
 
+const UPLOADED_CV_METADATA_KEY = "pathora-uploaded-cv-metadata";
+
 export const authService = {
   /**
    * Register pengguna baru
@@ -81,5 +83,6 @@ export const authService = {
    */
   logout(): void {
     localStorage.removeItem("token");
+    localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
   },
 };

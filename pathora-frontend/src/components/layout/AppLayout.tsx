@@ -28,7 +28,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     </div>
                 </main>
 
-                <FooterLayout />
+                <FooterLayout showSupportLink={false} />
             </div>
         </div>
     );

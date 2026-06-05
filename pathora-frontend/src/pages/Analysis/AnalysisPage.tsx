@@ -93,32 +93,32 @@ const AnalysisPage: React.FC = () => {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#F7F6F2] px-10 pt-0 pb-8 font-['Newsreader']">
+      <div className="min-h-screen bg-[#F7F6F2] px-4 sm:px-6 lg:px-10 pt-4 lg:pt-0 pb-8 font-['Newsreader']">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-start mb-5">
-            <div className="mb-7">
-              <h1 className="text-3xl font-bold font-['Newsreader'] text-gray-900">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-5">
+            <div className="min-w-0 lg:max-w-3xl">
+              <h1 className="text-2xl sm:text-3xl font-bold font-['Newsreader'] text-gray-900 leading-tight">
                 Hasil Analisis CV
               </h1>
-              <p className="text-gray-600 mt-2 text-sm font-['Manrope',_sans-serif]">
+              <p className="text-gray-600 mt-2 text-sm sm:text-base leading-6 font-['Manrope',_sans-serif]">
                 {isDetailMode
                   ? "Berikut hasil analisis CV berdasarkan data CV yang Anda pilih."
                   : "Gunakan pagination untuk melihat hasil analisis dari tiap CV Anda."}
               </p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-4 min-w-[190px]">
-              <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-                <span className="text-2xl font-bold text-[#102619]">
+            <div className="w-full lg:w-auto bg-white rounded-xl shadow-sm p-4 flex items-center gap-4 lg:min-w-[260px]">
+              <div className="w-14 h-14 shrink-0 rounded-full bg-green-100 flex items-center justify-center">
+                <span className="text-xl sm:text-2xl font-bold text-[#102619]">
                   {Math.round(result.confidence * 100)}
                 </span>
               </div>
 
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-gray-500">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-500 leading-4">
                   Skor prediksi Karier Teratas
                 </p>
-                <p className="font-medium text-[#102619]">
+                <p className="font-medium text-[#102619] break-words">
                   {result.predicted_category}
                 </p>
               </div>
@@ -161,10 +161,10 @@ const AnalysisPage: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-serif text-2xl text-[#102619]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 mb-8 lg:mb-10">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-5 sm:mb-6">
+                <h2 className="font-serif text-xl sm:text-2xl text-[#102619]">
                   Prediksi Karir
                 </h2>
                 <SlidersHorizontal className="w-5 h-5 text-gray-400" />
@@ -198,15 +198,15 @@ const AnalysisPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-5 sm:mb-6">
                 <Plane className="w-5 h-5 text-[#102619]" />
-                <h2 className="font-serif text-2xl text-[#102619]">
-                  Analisis Skill
+                <h2 className="font-serif text-xl sm:text-2xl text-[#102619]">
+                  Analisis Skill: {result.predicted_category}
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-10">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-gray-500 mb-4">
                     Skill Dimiliki
@@ -254,23 +254,23 @@ const AnalysisPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[#F9FAF7] border border-[#E8E8E0] rounded-2xl p-8">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="bg-[#F9FAF7] border border-[#E8E8E0] rounded-2xl p-5 sm:p-8">
+            <div className="flex items-center gap-2 mb-5 sm:mb-6">
               <Sparkles className="w-5 h-5 text-[#102619]" />
-              <h2 className="font-serif text-3xl text-[#102619]">
+              <h2 className="font-serif text-2xl sm:text-3xl text-[#102619]">
                 Rekomendasi Strategis Path'Ora
               </h2>
             </div>
 
             <div className="max-w-4xl">
-              <p className="text-gray-700 leading-8 whitespace-pre-line">
+              <p className="text-gray-700 text-sm sm:text-base leading-7 sm:leading-8 whitespace-pre-line">
                 {result.description_career_recommendations ||
                   "Belum ada narasi rekomendasi dari hasil analisis ini."}
               </p>
 
               <Link
                 to={`/career-recommendations/${analysis.id}`}
-                className="inline-block mt-8 px-8 py-3 border border-[#102619] rounded-lg text-[#102619] hover:bg-[#102619] hover:text-white transition"
+                className="inline-block mt-6 sm:mt-8 px-5 sm:px-8 py-3 border border-[#102619] rounded-lg text-sm sm:text-base text-[#102619] hover:bg-[#102619] hover:text-white transition"
               >
                 LIHAT RENCANA AKSI DETAIL
               </Link>

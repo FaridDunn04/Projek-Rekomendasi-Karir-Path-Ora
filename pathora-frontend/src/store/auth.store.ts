@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { User } from "../types/auth.ts";
 
+const UPLOADED_CV_METADATA_KEY = "pathora-uploaded-cv-metadata";
+
 /**
  * Global Auth State Management dengan Zustand (SDD UI-020)
  * Menyimpan user info, token, dan auth status untuk seluruh aplikasi
@@ -38,6 +40,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
             set({ token, isAuthenticated: true });
         } else {
             localStorage.removeItem("token");
+            localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
             set({ token: null, isAuthenticated: false, user: null });
         }
     },
@@ -45,6 +48,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     setError: (error) => set({ error }),
     logout: () => {
         localStorage.removeItem("token");
+        localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
         set({
             user: null,
             token: null,

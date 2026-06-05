@@ -57,15 +57,14 @@ const CareerRecommendationsPage: React.FC = () => {
 
   return (
     <AppLayout>
-      {/* Container utama: Padding px-4 untuk mobile, px-10 untuk desktop */}
-      <div className="min-h-screen bg-[#F4F9F4] px-4 md:px-10 pt-4 md:pt-0 pb-8 font-['Newsreader']">
+      <div className="min-h-screen bg-[#F4F9F4] px-4 sm:px-6 lg:px-10 pt-4 lg:pt-0 pb-8 font-['Newsreader']">
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
-          <div className="mb-6 md:mb-7">
-            <h1 className="text-3xl md:text-4xl font-bold font-['Newsreader'] text-gray-900 leading-tight">
+          <div className="mb-5 sm:mb-6 lg:mb-7 max-w-4xl">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-['Newsreader'] text-gray-900 leading-tight">
               Rekomendasi Karir
             </h1>
-            <p className="text-gray-500 mt-3 md:mt-2 text-[13px] md:text-sm font-['Manrope',_sans-serif] leading-relaxed">
+            <p className="text-gray-500 mt-2 sm:mt-3 text-sm sm:text-base lg:text-sm font-['Manrope',_sans-serif] leading-6">
               {isDetailMode
                 ? "Berikut rekomendasi karir berdasarkan hasil analisis CV yang Anda pilih."
                 : "Berdasarkan analisis keterampilan dan latar belakang profesional Anda baru-baru ini, kami telah menyusun jalur karir berpotensi tinggi yang disesuaikan dengan profil unik Anda."}
@@ -85,24 +84,24 @@ const CareerRecommendationsPage: React.FC = () => {
           )}
 
           {!isLoading && !error && analysis && (
-            <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm mb-6 font-['Manrope',_sans-serif]">
-              <h2 className="text-lg md:text-xl font-bold text-[#102619]">
+            <div className="bg-white rounded-2xl p-4 sm:p-5 lg:p-6 shadow-sm mb-5 sm:mb-6 font-['Manrope',_sans-serif]">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-[#102619]">
                 Hasil Analisis Utama
               </h2>
 
-              <div className="mt-4 flex flex-col gap-3 md:gap-2">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <span className="text-gray-500 text-xs md:text-sm font-semibold uppercase tracking-wider">Kategori Karir</span>
-                  <p className="text-base md:text-lg font-bold text-[#102619] mt-0.5">
+                  <span className="text-gray-500 text-[10px] sm:text-xs lg:text-sm font-semibold uppercase tracking-wider">Kategori Karir</span>
+                  <p className="text-sm sm:text-base lg:text-lg font-bold text-[#102619] mt-1 break-words">
                     {analysis.predicted_category}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-gray-500 text-xs md:text-sm font-semibold uppercase tracking-wider">
+                  <span className="text-gray-500 text-[10px] sm:text-xs lg:text-sm font-semibold uppercase tracking-wider">
                     Confidence Score
                   </span>
-                  <p className="text-base md:text-lg font-bold text-[#A27A53] mt-0.5 font-['Newsreader']">
+                  <p className="text-sm sm:text-base lg:text-lg font-bold text-[#A27A53] mt-1 font-['Newsreader']">
                     {(analysis.confidence * 100).toFixed(1)}%
                   </p>
                 </div>
@@ -112,7 +111,7 @@ const CareerRecommendationsPage: React.FC = () => {
 
           {/* Pagination Section (Responsif) */}
           {!isDetailMode && !isLoading && !error && totalAnalyses > 0 && (
-            <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 shadow-sm font-['Manrope',_sans-serif]">
+            <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl bg-white px-4 sm:px-5 py-4 shadow-sm font-['Manrope',_sans-serif]">
               <div>
                 <p className="text-sm font-bold text-[#102619]">
                   CV {currentIndex + 1} dari {totalAnalyses}
@@ -124,12 +123,12 @@ const CareerRecommendationsPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:items-center sm:w-auto">
                 <button
                   type="button"
                   onClick={goToPrevious}
                   disabled={currentIndex === 0}
-                  className="flex-1 md:flex-none justify-center inline-flex items-center gap-2 rounded-lg border border-[#102619] px-4 py-2 text-sm font-semibold text-[#102619] hover:bg-[#102619] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                  className="justify-center inline-flex items-center gap-2 rounded-lg border border-[#102619] px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#102619] hover:bg-[#102619] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                 >
                   <ChevronLeft size={16} />
                   Sebelumnya
@@ -138,7 +137,7 @@ const CareerRecommendationsPage: React.FC = () => {
                   type="button"
                   onClick={goToNext}
                   disabled={currentIndex >= totalAnalyses - 1}
-                  className="flex-1 md:flex-none justify-center inline-flex items-center gap-2 rounded-lg border border-[#102619] px-4 py-2 text-sm font-semibold text-[#102619] hover:bg-[#102619] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                  className="justify-center inline-flex items-center gap-2 rounded-lg border border-[#102619] px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#102619] hover:bg-[#102619] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                 >
                   Berikutnya
                   <ChevronRight size={16} />
@@ -149,7 +148,7 @@ const CareerRecommendationsPage: React.FC = () => {
 
           {/* Render Recommendations List */}
           {!isLoading && !error && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               {recommendations.length > 0 ? (
                 recommendations.map((career, index) => (
                   <JobRecommendationCard
@@ -157,7 +156,6 @@ const CareerRecommendationsPage: React.FC = () => {
                     job={{
                       id: index,
                       title: career.category,
-                      category: career.description || career.category,
                       matchPercentage: Math.round(career.match_score * 100),
                       matchingSkills:
                         career.matched_skills?.length > 0

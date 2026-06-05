@@ -1,15 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/layout/AppLayout";
 import {
   AlertTriangle,
   CheckCircle,
   LoaderCircle,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
 import { useCVUpload } from "../../hooks/useCVUpload";
 import { useAnalysis } from "../../hooks/useAnalysis";
+import { cvService } from "../../services/cv.service";
+import { parseApiError } from "../../utils/error";
+
+type UploadedCvMetadata = {
+  cvId: string;
+  fileName: string;
+  fileSize: number;
+  uploadedAt: string;
+};
+
+const UPLOADED_CV_METADATA_KEY = "pathora-uploaded-cv-metadata";
+
+const formatFileSize = (size: number) => {
+  if (!Number.isFinite(size) || size <= 0) return "-";
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 const UploadPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,8 +36,38 @@ const UploadPage: React.FC = () => {
   const [analysisFailed, setAnalysisFailed] = useState(false);
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [hasAiConsent, setAiConsent] = useState(false);
+  const [uploadedMetadata, setUploadedMetadata] =
+    useState<UploadedCvMetadata | null>(null);
+  const [isCancellingAnalysis, setCancellingAnalysis] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const { uploadCV, isLoading, progress, error } = useCVUpload();
   const { analyzeCV, isAnalyzing, error: analyzeError } = useAnalysis();
+
+  useEffect(() => {
+    const storedMetadata = localStorage.getItem(UPLOADED_CV_METADATA_KEY);
+    if (!storedMetadata) return;
+
+    try {
+      const metadata = JSON.parse(storedMetadata) as UploadedCvMetadata;
+      if (metadata.cvId && metadata.fileName) {
+        setUploadedCvId(metadata.cvId);
+        setUploadedMetadata(metadata);
+      }
+    } catch {
+      localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
+    }
+  }, []);
+
+  const persistUploadedMetadata = (metadata: UploadedCvMetadata) => {
+    localStorage.setItem(UPLOADED_CV_METADATA_KEY, JSON.stringify(metadata));
+    setUploadedMetadata(metadata);
+  };
+
+  const clearUploadedMetadata = () => {
+    localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
+    setUploadedMetadata(null);
+  };
 
   const runAnalysis = async (cvId: string) => {
     setAnalysisFailed(false);
@@ -27,6 +75,7 @@ const UploadPage: React.FC = () => {
     const analysisResult = await analyzeCV(cvId);
 
     if (analysisResult?.id) {
+      clearUploadedMetadata();
       navigate(`/analysis/${analysisResult.id}`);
       return;
     }
@@ -38,6 +87,9 @@ const UploadPage: React.FC = () => {
     setSelectedFile(null);
     setUploadedCvId(null);
     setAnalysisFailed(false);
+    setAiConsent(false);
+    setCancelError(null);
+    clearUploadedMetadata();
     setFeedbackOpen(false);
     setFileInputKey((current) => current + 1);
     navigate("/upload", { replace: true });
@@ -50,6 +102,9 @@ const UploadPage: React.FC = () => {
     setSelectedFile(file);
     setUploadedCvId(null);
     setAnalysisFailed(false);
+    setAiConsent(false);
+    setCancelError(null);
+    clearUploadedMetadata();
     setFeedbackOpen(false);
 
     const uploadResult = await uploadCV({
@@ -57,29 +112,63 @@ const UploadPage: React.FC = () => {
       file,
     });
 
-    if (!uploadResult) return;
+    if (!uploadResult) {
+      setFeedbackOpen(true);
+      return;
+    }
 
     setUploadedCvId(uploadResult.id);
+    persistUploadedMetadata({
+      cvId: uploadResult.id,
+      fileName: file.name,
+      fileSize: file.size,
+      uploadedAt: new Date().toISOString(),
+    });
     setFeedbackOpen(true);
-    await runAnalysis(uploadResult.id);
   };
 
-  const isProcessing = isLoading || isAnalyzing;
+  const cancelAnalysisAndDeleteCv = async () => {
+    if (!uploadedCvId || isCancellingAnalysis || isAnalyzing) return;
+
+    setCancellingAnalysis(true);
+    setCancelError(null);
+
+    try {
+      await cvService.deleteCV(uploadedCvId);
+      resetUploadFlow();
+    } catch (error) {
+      setCancelError(parseApiError(error));
+    } finally {
+      setCancellingAnalysis(false);
+    }
+  };
+
+  const isProcessing = isLoading || isAnalyzing || isCancellingAnalysis;
   const errorMessage = error || analyzeError;
   const showFeedbackModal =
     isFeedbackOpen && (!!errorMessage || (!!uploadedCvId && !error));
   const isAnalyzeError = analysisFailed && !!uploadedCvId;
+  const shouldShowConsent =
+    !!uploadedCvId &&
+    !errorMessage &&
+    !isAnalyzing &&
+    !analysisFailed &&
+    !isCancellingAnalysis;
   const feedbackTitle = errorMessage
     ? isAnalyzeError
       ? "Analisis AI gagal diproses"
       : "Upload CV gagal"
     : isAnalyzing
       ? "Analisis CV sedang berjalan"
-      : "CV berhasil diunggah";
+      : shouldShowConsent
+        ? "Persetujuan Analisis AI"
+        : "CV berhasil diunggah";
   const feedbackMessage = errorMessage
     ? errorMessage
     : isAnalyzing
       ? "Sistem sedang membaca CV, mengekstrak skill, dan menghitung rekomendasi karir. Proses ini dapat memakan waktu beberapa saat."
+      : shouldShowConsent
+        ? "Path`Ora akan menggunakan AI untuk membaca dan menganalisis CV Anda, termasuk prediksi kategori karir, skill yang terdeteksi, skill yang perlu ditingkatkan, dan rekomendasi karir.\n\nData CV digunakan hanya untuk proses analisis dan menampilkan hasil kepada Anda."
       : analysisFailed
         ? "File sudah tersimpan, tetapi analisis gagal. Silakan upload file lagi untuk memulai analisis baru."
         : "CV sudah tersimpan dan hasil analisis siap ditampilkan.";
@@ -135,6 +224,47 @@ const UploadPage: React.FC = () => {
             <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
               <p className="text-xs md:text-sm text-gray-500 mb-1">File Dipilih</p>
               <p className="font-medium text-sm md:text-base text-[#102619] truncate">{selectedFile.name}</p>
+            </div>
+          )}
+
+          {uploadedMetadata && !selectedFile && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <p className="text-xs md:text-sm text-gray-500 mb-1">
+                File Terakhir Diunggah
+              </p>
+              <p className="font-medium text-sm md:text-base text-[#102619] truncate">
+                {uploadedMetadata.fileName}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                {formatFileSize(uploadedMetadata.fileSize)} •{" "}
+                {new Date(uploadedMetadata.uploadedAt).toLocaleString("id-ID")}
+              </p>
+            </div>
+          )}
+
+          {shouldShowConsent && !isFeedbackOpen && (
+            <div className="mt-6 rounded-xl border border-emerald-100 bg-green-50 p-4">
+              <p className="text-sm font-semibold text-[#102619]">
+                CV berhasil diunggah
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Lanjutkan ke persetujuan analisis AI untuk memproses CV Anda.
+              </p>
+              <button
+                type="button"
+                onClick={() => setFeedbackOpen(true)}
+                className="mt-3 rounded-lg bg-[#102619] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a3a26]"
+              >
+                Lanjutkan Analisis
+              </button>
+              <button
+                type="button"
+                onClick={cancelAnalysisAndDeleteCv}
+                disabled={isCancellingAnalysis}
+                className="ml-0 mt-3 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-3"
+              >
+                {isCancellingAnalysis ? "Membatalkan..." : "Batalkan Analisis"}
+              </button>
             </div>
           )}
 
@@ -196,8 +326,69 @@ const UploadPage: React.FC = () => {
               {feedbackTitle}
             </h2>
             <p className="mt-3 text-sm leading-6 text-gray-600 font-['Manrope',_sans-serif]">
-              {feedbackMessage}
+              {feedbackMessage.split("\n").map((line, index) => (
+                <React.Fragment key={`${line}-${index}`}>
+                  {line}
+                  {index < feedbackMessage.split("\n").length - 1 && <br />}
+                </React.Fragment>
+              ))}
             </p>
+
+            {shouldShowConsent && (
+              <div className="mt-5">
+                {uploadedMetadata && (
+                  <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    <p className="text-xs uppercase tracking-wider text-gray-500">
+                      File yang sudah diunggah
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-[#102619]">
+                      {uploadedMetadata.fileName}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formatFileSize(uploadedMetadata.fileSize)}
+                    </p>
+                  </div>
+                )}
+
+                <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <input
+                    type="checkbox"
+                    checked={hasAiConsent}
+                    onChange={(event) => setAiConsent(event.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 accent-[#102619]"
+                  />
+                  <span className="text-sm leading-6 text-gray-700 font-['Manrope',_sans-serif]">
+                    Saya menyetujui CV saya diproses menggunakan AI untuk
+                    kebutuhan analisis karir di Path`Ora.
+                  </span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => runAnalysis(uploadedCvId)}
+                  disabled={!hasAiConsent || isAnalyzing}
+                  className="mt-4 w-full rounded-lg bg-[#102619] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1a3a26] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Setuju & Analisis CV
+                </button>
+
+                <button
+                  type="button"
+                  onClick={cancelAnalysisAndDeleteCv}
+                  disabled={isCancellingAnalysis || isAnalyzing}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Trash2 size={16} />
+                  {isCancellingAnalysis
+                    ? "Membatalkan..."
+                    : "Batalkan Analisis & Hapus CV"}
+                </button>
+
+                {cancelError && (
+                  <p className="mt-3 text-sm text-red-600">{cancelError}</p>
+                )}
+              </div>
+            )}
 
             {isAnalyzing && (
               <div className="mt-5">

@@ -89,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <img
                         src={logo}
                         alt="Path'Ora Logo"
-                        className="w-9 h-9"
+                        className="w-9 h-9 icon-dark rounded-full shadow-md"
                     />
 
                     <h1 className="text-2xl font-['Newsreader'] text-gray-900">

@@ -7,7 +7,9 @@ import UploadPage from "../pages/Upload/UploadPage.tsx";
 import CareerRecommendationsPage from "../pages/CareerRecommendations/CareerRecommendationsPage.tsx";
 import AnalysisPage from "../pages/Analysis/AnalysisPage.tsx";
 import ProfilePage from "../pages/Profile/ProfilePage.tsx";
+import NotFoundPage from "../pages/NotFound/NotFoundPage.tsx";
 import ProtectedRoute from "./ProtectedRoute.tsx";
+import PublicRoute from "./PublicRoute.tsx";
 
 const router = createBrowserRouter([
   {
@@ -16,11 +18,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
   },
   {
     path: "/register",
-    element: <RegisterPage />,
+    element: (
+      <PublicRoute>
+        <RegisterPage />
+      </PublicRoute>
+    ),
   },
   {
     path: "/dashboard",
@@ -77,6 +87,10 @@ const router = createBrowserRouter([
         <ProfilePage />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
   },
 ]);
 

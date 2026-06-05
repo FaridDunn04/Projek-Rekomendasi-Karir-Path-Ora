@@ -1,6 +1,12 @@
 import React from "react";
 
-const FooterLayout: React.FC = () => {
+interface FooterLayoutProps {
+    showSupportLink?: boolean;
+}
+
+const FooterLayout: React.FC<FooterLayoutProps> = ({
+    showSupportLink = true,
+}) => {
     return (
         <footer className="
             bg-[#F4F9F4]
@@ -27,9 +33,11 @@ const FooterLayout: React.FC = () => {
                     <a href="#" className="hover:text-gray-900 transition-colors">
                         Terms of Service
                     </a>
-                    <a href="#" className="hover:text-gray-900 transition-colors">
-                        Support
-                    </a>
+                    {showSupportLink && (
+                        <a href="#" className="hover:text-gray-900 transition-colors">
+                            Support
+                        </a>
+                    )}
                 </div>
 
             </div>

@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, FileText, Trash2, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Trash2,
+  X,
+} from "lucide-react";
 import { AnalysisHistoryItem } from "../../types/dashboard";
 import { cvService } from "../../services/cv.service";
 import { parseApiError } from "../../utils/error";
@@ -12,11 +19,31 @@ interface Props {
 
 const Riwayat: React.FC<Props> = ({ history, onDeleted }) => {
   const navigate = useNavigate();
+  const itemsPerPage = 5;
   const [deletingCvId, setDeletingCvId] = useState<string | null>(null);
   const [pendingDeleteCvId, setPendingDeleteCvId] = useState<string | null>(
     null,
   );
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(history.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const paginatedHistory = history.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(page - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(page + 1, totalPages));
+  };
 
   const openDeleteModal = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -52,11 +79,35 @@ const Riwayat: React.FC<Props> = ({ history, onDeleted }) => {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden font-['Newsreader']">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div className="flex flex-col gap-3 px-6 py-4 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-bold text-gray-900">Riwayat Upload</h2>
-        <button className="text-xs font-bold text-gray-500 hover:text-black tracking-wider uppercase">
-          LIHAT SEMUA
-        </button>
+        {history.length > itemsPerPage && (
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              {safeCurrentPage}/{totalPages}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage === 1}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-[#102619] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Riwayat sebelumnya"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={safeCurrentPage === totalPages}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-[#102619] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Riwayat berikutnya"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {deleteError && (
@@ -67,7 +118,7 @@ const Riwayat: React.FC<Props> = ({ history, onDeleted }) => {
 
       {history.length > 0 ? (
         <div className="divide-y divide-gray-100">
-          {history.map((item) => (
+          {paginatedHistory.map((item) => (
             <div
               key={item.id}
               className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
