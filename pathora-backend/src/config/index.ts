@@ -17,6 +17,7 @@ const EnvSchema = z
     JWT_EXPIRES_IN: z.string().default("7d"),
     AI_BASE_URL: z.string().optional(),
     AI_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+    AI_API_KEY: z.string().optional(),
     USE_MOCK_AI: z.coerce.boolean().default(false),
     ALLOWED_ORIGINS: z.string().default("http://localhost:5173"),
     MAX_FILE_SIZE_MB: z.coerce.number().positive().default(5),
@@ -54,6 +55,7 @@ export const config = {
   JWT_EXPIRES_IN: env.JWT_EXPIRES_IN,
   AI_BASE_URL: env.AI_BASE_URL,
   AI_TIMEOUT_MS: env.AI_TIMEOUT_MS,
+  AI_API_KEY: env.AI_API_KEY,
   USE_MOCK_AI: env.USE_MOCK_AI,
   ALLOWED_ORIGINS: env.ALLOWED_ORIGINS.split(",")
     .map((s) => s.trim())

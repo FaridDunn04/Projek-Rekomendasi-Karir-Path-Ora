@@ -15,6 +15,7 @@ export class HttpAiGateway implements AiGatewayAdapter {
         // AI mengharapkan application/x-www-form-urlencoded dengan field "text"
         const params = new URLSearchParams();
         params.append("text", source.rawText);
+        params.append("gemini_api_key", config.AI_API_KEY ?? "");
 
         const { data } = await axios.post(
           `${config.AI_BASE_URL}/predict`,
@@ -32,6 +33,7 @@ export class HttpAiGateway implements AiGatewayAdapter {
           filename: source.fileName ?? "cv",
           contentType: source.fileMime,
         });
+        form.append("gemini_api_key", config.AI_API_KEY ?? "");
 
         const { data } = await axios.post(
           `${config.AI_BASE_URL}/predict/file`,

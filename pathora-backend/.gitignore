@@ -38,3 +38,47 @@ Thumbs.db
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 *.local
+
+# Additional environment files
+.env.development
+.env.production
+.env.staging
+.env.preview
+
+# Package manager caches
+.npm/
+.pnpm-store/
+.yarn/
+!.yarn/releases/
+!.yarn/plugins/
+!.yarn/sdks/
+!.yarn/versions/
+
+# Tool caches
+.cache/
+.eslintcache
+.vite/
+.turbo/
+
+# Runtime and temporary files
+tmp/
+temp/
+.tmp/
+uploads/
+*.pid
+*.seed
+
+# Test artifacts
+test-results/
+reports/
+junit.xml
+
+# Local database dumps and backups
+*.dump
+*.sql.gz
+*.backup
+
+# Deployment metadata
+.vercel/
+.netlify/
+.railway/
