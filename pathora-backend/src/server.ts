@@ -14,7 +14,12 @@ async function start() {
   const app = createApp();
   const server = app.listen(config.PORT, () => {
     logger.info(
-      { port: config.PORT, env: config.NODE_ENV },
+      {
+        port: config.PORT,
+        env: config.NODE_ENV,
+        useMockAi: config.USE_MOCK_AI,
+        aiBaseUrl: config.AI_BASE_URL,
+      },
       `server.listening — Path\`Ora Backend berjalan di port ${config.PORT}`,
     );
   });

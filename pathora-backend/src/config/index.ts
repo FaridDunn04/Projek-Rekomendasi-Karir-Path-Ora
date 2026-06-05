@@ -34,7 +34,7 @@ const EnvSchema = z
     AI_BASE_URL: z.string().optional(),
     AI_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
     AI_API_KEY: z.string().optional(),
-    USE_MOCK_AI: booleanString.default(false),
+    USE_MOCK_AI: booleanString.optional(),
     use_mock_ai: booleanString.optional(),
     ALLOWED_ORIGINS: z.string().default("http://localhost:5173"),
     MAX_FILE_SIZE_MB: z.coerce.number().positive().default(5),
@@ -47,7 +47,7 @@ const EnvSchema = z
   })
   .transform((c) => ({
     ...c,
-    USE_MOCK_AI: c.use_mock_ai ?? c.USE_MOCK_AI,
+    USE_MOCK_AI: c.USE_MOCK_AI ?? c.use_mock_ai ?? false,
   }))
   .refine((c) => c.USE_MOCK_AI || !!c.AI_BASE_URL, {
     message:
