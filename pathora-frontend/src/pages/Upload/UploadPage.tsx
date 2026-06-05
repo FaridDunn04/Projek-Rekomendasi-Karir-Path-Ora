@@ -29,6 +29,20 @@ const formatFileSize = (size: number) => {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const getStoredUploadedMetadata = (): UploadedCvMetadata | null => {
+  const storedMetadata = localStorage.getItem(UPLOADED_CV_METADATA_KEY);
+  if (!storedMetadata) return null;
+
+  try {
+    const metadata = JSON.parse(storedMetadata) as UploadedCvMetadata;
+    if (metadata.cvId && metadata.fileName) return metadata;
+  } catch {
+    localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
+  }
+
+  return null;
+};
+
 const UploadPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -41,21 +55,19 @@ const UploadPage: React.FC = () => {
     useState<UploadedCvMetadata | null>(null);
   const [isCancellingAnalysis, setCancellingAnalysis] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [pendingReplacementFile, setPendingReplacementFile] =
+    useState<File | null>(null);
+  const [isReplaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
+  const [isReplacingFile, setReplacingFile] = useState(false);
+  const [replaceError, setReplaceError] = useState<string | null>(null);
   const { uploadCV, isLoading, progress, error } = useCVUpload();
   const { analyzeCV, isAnalyzing, error: analyzeError } = useAnalysis();
 
   useEffect(() => {
-    const storedMetadata = localStorage.getItem(UPLOADED_CV_METADATA_KEY);
-    if (!storedMetadata) return;
-
-    try {
-      const metadata = JSON.parse(storedMetadata) as UploadedCvMetadata;
-      if (metadata.cvId && metadata.fileName) {
-        setUploadedCvId(metadata.cvId);
-        setUploadedMetadata(metadata);
-      }
-    } catch {
-      localStorage.removeItem(UPLOADED_CV_METADATA_KEY);
+    const metadata = getStoredUploadedMetadata();
+    if (metadata) {
+      setUploadedCvId(metadata.cvId);
+      setUploadedMetadata(metadata);
     }
   }, []);
 
@@ -95,15 +107,13 @@ const UploadPage: React.FC = () => {
     navigate("/upload", { replace: true });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadSelectedFile = async (file: File) => {
     setSelectedFile(file);
     setUploadedCvId(null);
     setAnalysisFailed(false);
     setAiConsent(false);
     setCancelError(null);
+    setReplaceError(null);
     clearUploadedMetadata();
     setFeedbackOpen(false);
 
@@ -127,6 +137,54 @@ const UploadPage: React.FC = () => {
     setFeedbackOpen(true);
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const existingMetadata = uploadedMetadata ?? getStoredUploadedMetadata();
+
+    if (existingMetadata?.cvId) {
+      setUploadedMetadata(existingMetadata);
+      setUploadedCvId(existingMetadata.cvId);
+      setPendingReplacementFile(file);
+      setReplaceConfirmOpen(true);
+      setReplaceError(null);
+      setFeedbackOpen(false);
+      setFileInputKey((current) => current + 1);
+      return;
+    }
+
+    await uploadSelectedFile(file);
+  };
+
+  const cancelReplaceFile = () => {
+    if (isReplacingFile) return;
+    setPendingReplacementFile(null);
+    setReplaceConfirmOpen(false);
+    setReplaceError(null);
+  };
+
+  const confirmReplaceFile = async () => {
+    if (!pendingReplacementFile || !uploadedMetadata?.cvId || isReplacingFile) {
+      return;
+    }
+
+    setReplacingFile(true);
+    setReplaceError(null);
+
+    try {
+      await cvService.deleteCV(uploadedMetadata.cvId);
+      const fileToUpload = pendingReplacementFile;
+      setPendingReplacementFile(null);
+      setReplaceConfirmOpen(false);
+      await uploadSelectedFile(fileToUpload);
+    } catch (error) {
+      setReplaceError(parseApiError(error));
+    } finally {
+      setReplacingFile(false);
+    }
+  };
+
   const cancelAnalysisAndDeleteCv = async () => {
     if (!uploadedCvId || isCancellingAnalysis || isAnalyzing) return;
 
@@ -143,7 +201,8 @@ const UploadPage: React.FC = () => {
     }
   };
 
-  const isProcessing = isLoading || isAnalyzing || isCancellingAnalysis;
+  const isProcessing =
+    isLoading || isAnalyzing || isCancellingAnalysis || isReplacingFile;
   const errorMessage = error || analyzeError;
   const showFeedbackModal =
     isFeedbackOpen && (!!errorMessage || (!!uploadedCvId && !error));
@@ -217,7 +276,7 @@ const UploadPage: React.FC = () => {
               type="file"
               accept=".pdf,.doc,.docx"
               className="hidden"
-              disabled={isProcessing}
+              disabled={isProcessing || isReplaceConfirmOpen}
               onChange={handleFileChange}
             />
           </label>
@@ -291,6 +350,82 @@ const UploadPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {isReplaceConfirmOpen && pendingReplacementFile && uploadedMetadata && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-[#0B2A18]">
+            <button
+              type="button"
+              onClick={cancelReplaceFile}
+              disabled={isReplacingFile}
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#d1d5d1]/70 dark:hover:bg-[#123720] dark:hover:text-[#d1d5d1]"
+              aria-label="Tutup konfirmasi"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#8FB399]/25 text-[#102619] dark:bg-[#8FB399] dark:text-[#051B0F]">
+              <Upload size={24} />
+            </div>
+
+            <h2 className="pr-8 text-xl md:text-2xl font-semibold font-['Newsreader'] text-[#102619] dark:text-[#d1d5d1]">
+              Ganti file sebelumnya?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-600 font-['Manrope',_sans-serif] dark:text-[#d1d5d1]/75">
+              Anda masih memiliki CV yang sudah diunggah dan tersimpan di
+              metadata. Apakah Anda ingin mengganti file sebelumnya dengan file
+              baru yang dipilih?
+            </p>
+
+            <div className="mt-5 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-[#8FB399]/20 dark:bg-[#051B0F]/55">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-[#d1d5d1]/55">
+                  File sebelumnya
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-[#102619] dark:text-[#d1d5d1]">
+                  {uploadedMetadata.fileName}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-[#d1d5d1]/55">
+                  File baru
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-[#102619] dark:text-[#d1d5d1]">
+                  {pendingReplacementFile.name}
+                </p>
+              </div>
+            </div>
+
+            {replaceError && (
+              <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-300">
+                {replaceError}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={cancelReplaceFile}
+                disabled={isReplacingFile}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#8FB399]/30 dark:text-[#d1d5d1] dark:hover:bg-[#123720]"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmReplaceFile}
+                disabled={isReplacingFile}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#102619] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3a26] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#8FB399] dark:text-[#051B0F] dark:hover:bg-[#b7d6c2]"
+              >
+                {isReplacingFile && (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                )}
+                {isReplacingFile ? "Mengganti..." : "Ganti File"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Feedback (Sudah cukup responsif, hanya memastikan padding aman di layar kecil) */}
       {showFeedbackModal && (
