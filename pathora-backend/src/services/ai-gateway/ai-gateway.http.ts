@@ -56,9 +56,11 @@ export class HttpAiGateway implements AiGatewayAdapter {
       const normalized =
         parsed !== null && typeof parsed === "object"
           ? {
-              cv_id: cvId,
-              analyzed_at: new Date().toISOString(),
               ...(parsed as Record<string, unknown>),
+              cv_id: cvId,
+              analyzed_at:
+                (parsed as Record<string, unknown>)["analyzed_at"] ??
+                new Date().toISOString(),
             }
           : parsed;
 
