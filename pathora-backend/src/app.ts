@@ -8,11 +8,13 @@ import { nanoid } from "nanoid";
 import { corsMiddleware } from "./middlewares/cors.js";
 import { globalLimiter } from "./middlewares/rate-limit.js";
 import { errorHandler } from "./middlewares/error.js";
+import { config } from "./config/index.js";
 import { response } from "./utils/response.js";
 import apiRouter from "./routes/index.js";
 
 export function createApp() {
   const app = express();
+  app.set("trust proxy", config.IS_PRODUCTION ? 1 : false);
   app.use(corsMiddleware);
   app.use(express.json({ limit: "10mb" }));
   app.use((req: Request, _res: Response, next: NextFunction) => {
