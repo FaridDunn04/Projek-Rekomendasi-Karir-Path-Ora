@@ -1,6 +1,6 @@
 ﻿
 import { Router } from "express";
-import { strictLimiter } from "../../../middlewares/rate-limit.js";
+import { authLimiter } from "../../../middlewares/rate-limit.js";
 import { validate } from "../../../middlewares/validate.js";
 import { authRepository } from "../repositories/auth.repository.js";
 import { RegisterSchema, LoginSchema } from "../validators/auth.schema.js";
@@ -27,9 +27,9 @@ const { register, login } = createAuthController({
 const router = Router();
 router.post(
   "/register",
-  strictLimiter,
+  authLimiter,
   validate(RegisterSchema, "body"),
   register,
 );
-router.post("/login", strictLimiter, validate(LoginSchema, "body"), login);
+router.post("/login", authLimiter, validate(LoginSchema, "body"), login);
 export default router;

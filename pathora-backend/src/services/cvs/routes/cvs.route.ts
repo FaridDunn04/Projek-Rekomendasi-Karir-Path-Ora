@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { auth } from "../../../middlewares/auth.js";
 import { validate } from "../../../middlewares/validate.js";
-import { strictLimiter } from "../../../middlewares/rate-limit.js";
+import { aiLimiter } from "../../../middlewares/rate-limit.js";
 import { uploadCvFile } from "../../../middlewares/upload.js";
 import { cvsRepository } from "../repositories/cvs.repository.js";
 import { analysesRepository } from "../../analyses/repositories/analyses.repository.js";
@@ -49,14 +49,14 @@ const { trigger, getLatestByCv } = createAnalysesController({
 });
 
 const router = Router();
-router.post("/", auth, uploadCvFile, upload);
+router.post("/", auth, aiLimiter, uploadCvFile, upload);
 router.get("/", auth, list);
 router.get("/:cvId", auth, validate(CvIdParamSchema, "params"), getOne);
 router.delete("/:cvId", auth, validate(CvIdParamSchema, "params"), remove);
 router.post(
   "/:cvId/analyze",
   auth,
-  strictLimiter,
+  aiLimiter,
   validate(CvIdParamSchema, "params"),
   trigger,
 );

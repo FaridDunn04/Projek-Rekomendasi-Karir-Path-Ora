@@ -8,7 +8,7 @@ import {
   AnalyzeResponse,
 } from "../types/analysis";
 
-type BackendSkill = string | { skill?: string; name?: string };
+type BackendSkill = string | { skill?: string; name?: string; similarity?: number };
 
 type BackendPrediction = {
   category: string;
@@ -57,6 +57,25 @@ const findExtractedSkillsByCategory = (
 ): BackendExtractedSkills | undefined =>
   extractedSkills.find((item) => item.category === category);
 
+const scoreFromExtractedSkills = (
+  extracted: BackendExtractedSkills,
+): number => {
+  const similarities = (extracted.matched_skills ?? extracted.match_skills ?? [])
+    .map((skill) =>
+      typeof skill === "string" ? 0 : normalizeConfidence(skill.similarity),
+    )
+    .filter((similarity) => similarity > 0);
+
+  if (similarities.length === 0) {
+    return 0;
+  }
+
+  return (
+    similarities.reduce((total, similarity) => total + similarity, 0) /
+    similarities.length
+  );
+};
+
 const normalizeConfidence = (value: unknown): number => {
   const parsed =
     typeof value === "number"
@@ -103,11 +122,38 @@ export const normalizeAnalysis = (analysis: BackendAnalysis): Analysis => {
     topPredictionSkills?.missing_skills ?? [],
     normalizeSkills(topExtracted?.missing_skills),
   );
-  const careerRecommendations = (
+  const rawCareerRecommendations = (
     result?.career_recommendations ??
     analysis.career_recommendations ??
     []
-  ).map((recommendation) => {
+  );
+  const recommendationCategories = new Set(
+    rawCareerRecommendations.map((recommendation) => recommendation.category),
+  );
+  const extractedSkillRecommendations = extractedSkills
+    .filter((extracted) => extracted.category)
+    .filter((extracted) => !recommendationCategories.has(extracted.category!))
+    .map((extracted) => {
+      const prediction = topPredictions.find(
+        (item) => item.category === extracted.category,
+      );
+
+      return {
+        category: extracted.category!,
+        match_score:
+          prediction?.confidence ??
+          prediction?.score ??
+          scoreFromExtractedSkills(extracted),
+        matched_skills: normalizeSkills(
+          extracted.matched_skills ?? extracted.match_skills,
+        ),
+        missing_skills: normalizeSkills(extracted.missing_skills),
+      };
+    });
+  const careerRecommendations = [
+    ...rawCareerRecommendations,
+    ...extractedSkillRecommendations,
+  ].map((recommendation) => {
     const extracted = findExtractedSkillsByCategory(
       extractedSkills,
       recommendation.category,

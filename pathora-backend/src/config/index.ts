@@ -39,7 +39,9 @@ const EnvSchema = z
     ALLOWED_ORIGINS: z.string().default("http://localhost:5173"),
     MAX_FILE_SIZE_MB: z.coerce.number().positive().default(5),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900_000),
-    RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
+    RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),
+    AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+    AI_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
     STRICT_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
@@ -85,6 +87,8 @@ export const config = {
   MAX_FILE_SIZE_MB: env.MAX_FILE_SIZE_MB,
   RATE_LIMIT_WINDOW_MS: env.RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX: env.RATE_LIMIT_MAX,
+  AUTH_RATE_LIMIT_MAX: env.AUTH_RATE_LIMIT_MAX,
+  AI_RATE_LIMIT_MAX: env.AI_RATE_LIMIT_MAX,
   STRICT_RATE_LIMIT_MAX: env.STRICT_RATE_LIMIT_MAX,
   LOG_LEVEL: env.LOG_LEVEL,
 } as const;
