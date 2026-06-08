@@ -79,7 +79,14 @@ describe("MockAiGateway", () => {
     expect(result.predicted_category).toBeDefined();
   });
   it("payload mock mencakup item di bawah threshold untuk test filter (FR-016, FR-020)", async () => {
-    const result = await gateway.analyze(textSource, "cv-filter-test");
+    await gateway.analyze(textSource, "cv-filter-warmup", {
+      sessionId: "filter-session",
+      userId: "filter-user",
+    });
+    const result = await gateway.analyze(textSource, "cv-filter-test", {
+      sessionId: "filter-session",
+      userId: "filter-user",
+    });
     const hasLowConfidence = result.top_5_predictions.some(
       (p) => p.confidence < 0.05,
     );
@@ -90,15 +97,54 @@ describe("MockAiGateway", () => {
     expect(hasLowMatchScore).toBe(true);
   });
   it("mengembalikan payload mock secara berurutan untuk setiap analisis", async () => {
-    const first = await gateway.analyze(textSource, "cv-sequence-1");
-    const second = await gateway.analyze(textSource, "cv-sequence-2");
-    const third = await gateway.analyze(textSource, "cv-sequence-3");
+    const first = await gateway.analyze(textSource, "cv-sequence-1", {
+      sessionId: "session-1",
+      userId: "user-1",
+    });
+    const second = await gateway.analyze(textSource, "cv-sequence-2", {
+      sessionId: "session-1",
+      userId: "user-1",
+    });
+    const third = await gateway.analyze(textSource, "cv-sequence-3", {
+      sessionId: "session-1",
+      userId: "user-1",
+    });
 
     expect(first.cv_id).toBe("cv-sequence-1");
-    expect(first.predicted_category).toBe("HEALTHCARE");
+    expect(first.predicted_category).toBe("INFORMATION-TECHNOLOGY");
     expect(second.cv_id).toBe("cv-sequence-2");
-    expect(second.predicted_category).toBe("DESIGN");
+    expect(second.predicted_category).toBe("EDUCATION-ADMINISTRATION");
     expect(third.cv_id).toBe("cv-sequence-3");
-    expect(third.predicted_category).toBe("LEGAL");
+    expect(third.predicted_category).toBe("EDUCATION-ADMINISTRATION");
+  });
+
+  it("memulai lagi dari mock payload pertama untuk sesi login berbeda", async () => {
+    const firstSessionFirst = await gateway.analyze(textSource, "cv-s1-1", {
+      sessionId: "session-1",
+      userId: "user-1",
+    });
+    const firstSessionSecond = await gateway.analyze(textSource, "cv-s1-2", {
+      sessionId: "session-1",
+      userId: "user-1",
+    });
+    const secondSessionFirst = await gateway.analyze(textSource, "cv-s2-1", {
+      sessionId: "session-2",
+      userId: "user-1",
+    });
+    const otherUserFirst = await gateway.analyze(textSource, "cv-u2-1", {
+      sessionId: "session-3",
+      userId: "user-2",
+    });
+
+    expect(firstSessionFirst.predicted_category).toBe(
+      "INFORMATION-TECHNOLOGY",
+    );
+    expect(firstSessionSecond.predicted_category).toBe(
+      "EDUCATION-ADMINISTRATION",
+    );
+    expect(secondSessionFirst.predicted_category).toBe(
+      "INFORMATION-TECHNOLOGY",
+    );
+    expect(otherUserFirst.predicted_category).toBe("INFORMATION-TECHNOLOGY");
   });
 });

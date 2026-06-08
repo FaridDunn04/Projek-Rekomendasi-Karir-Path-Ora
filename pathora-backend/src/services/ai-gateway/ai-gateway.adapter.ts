@@ -9,6 +9,15 @@ export type CvSource =
       fileName?: string;
     };
 
+export type AnalyzeContext = {
+  sessionId?: string;
+  userId?: string;
+};
+
 export interface AiGatewayAdapter {
-  analyze(source: CvSource, cvId: string): Promise<AiAnalysisResult>;
+  analyze(
+    source: CvSource,
+    cvId: string,
+    context?: AnalyzeContext,
+  ): Promise<AiAnalysisResult>;
 }

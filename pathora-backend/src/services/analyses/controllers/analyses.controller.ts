@@ -4,7 +4,7 @@ import { response } from "../../../utils/response.js";
 import { parsePagination } from "../../../utils/pagination.js";
 
 interface TriggerAnalysisUseCase {
-  execute(cvId: string, userId: string): Promise<unknown>;
+  execute(cvId: string, userId: string, sessionId?: string): Promise<unknown>;
 }
 interface GetAnalysisUseCase {
   execute(analysisId: string, userId: string): Promise<unknown>;
@@ -39,7 +39,11 @@ export function createAnalysesController({
   ): Promise<void> {
     try {
       const { cvId } = req.params as { cvId: string };
-      const result = await triggerAnalysisUseCase.execute(cvId, req.user!.id);
+      const result = await triggerAnalysisUseCase.execute(
+        cvId,
+        req.user!.id,
+        req.user!.sid,
+      );
       res.status(200).json(response.success(result));
     } catch (err) {
       next(err);

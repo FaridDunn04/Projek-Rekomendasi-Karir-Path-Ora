@@ -48,6 +48,7 @@ export function createTriggerAnalysisUseCase({
     async execute(
       cvId: string,
       userId: string,
+      sessionId?: string,
     ): Promise<TriggerAnalysisResult> {
       const cv = await cvsRepo.findById(cvId);
       if (!cv) {
@@ -73,7 +74,7 @@ export function createTriggerAnalysisUseCase({
             };
       let result: AiAnalysisResult;
       try {
-        result = await aiGateway.analyze(source, cvId);
+        result = await aiGateway.analyze(source, cvId, { sessionId, userId });
       } catch (err) {
         await rollbackUploadedCv({
           cvsRepo,

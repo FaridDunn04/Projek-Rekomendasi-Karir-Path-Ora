@@ -1,5 +1,9 @@
 ﻿import { validateAiResponse } from "../../utils/ai-schema-validator.js";
-import type { AiGatewayAdapter, CvSource } from "./ai-gateway.adapter.js";
+import type {
+  AiGatewayAdapter,
+  AnalyzeContext,
+  CvSource,
+} from "./ai-gateway.adapter.js";
 import type { AiAnalysisResult } from "./ai-response.schema.js";
 
 const sleep = (ms: number) =>
@@ -475,19 +479,29 @@ type MockAiGatewayOptions = {
 };
 
 export class MockAiGateway implements AiGatewayAdapter {
-  private nextPayloadIndex = 0;
+  private readonly nextPayloadIndexBySession = new Map<string, number>();
   private readonly delayMs: number;
 
   constructor(options: MockAiGatewayOptions = {}) {
     this.delayMs = options.delayMs ?? MOCK_AI_DELAY_MS;
   }
 
-  async analyze(_source: CvSource, cvId: string): Promise<AiAnalysisResult> {
+  async analyze(
+    _source: CvSource,
+    cvId: string,
+    context: AnalyzeContext = {},
+  ): Promise<AiAnalysisResult> {
     await sleep(this.delayMs);
 
-    const template = MOCK_PAYLOAD_SEQUENCE[this.nextPayloadIndex];
-    this.nextPayloadIndex =
-      (this.nextPayloadIndex + 1) % MOCK_PAYLOAD_SEQUENCE.length;
+    const sessionKey =
+      context.sessionId ?? context.userId ?? "__default_mock_session__";
+    const nextPayloadIndex =
+      this.nextPayloadIndexBySession.get(sessionKey) ?? 0;
+    const template = MOCK_PAYLOAD_SEQUENCE[nextPayloadIndex];
+    this.nextPayloadIndexBySession.set(
+      sessionKey,
+      (nextPayloadIndex + 1) % MOCK_PAYLOAD_SEQUENCE.length,
+    );
 
     const payload = {
       ...JSON.parse(JSON.stringify(template)),
