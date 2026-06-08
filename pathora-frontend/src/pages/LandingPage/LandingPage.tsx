@@ -80,9 +80,10 @@ export default function LandingPage() {
                 Analisis CV mendalam untuk menemukan jalur profesional yang paling selaras dengan potensi Anda. Melampaui sekadar kata kunci, kami membaca ambisi.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 scroll-reveal">
-                <button className="bg-[#061B0E] text-white px-8 py-4 text-sm font-semibold uppercase tracking-widest hover:bg-[#0a2012] transition-all active:scale-95 shadow-xl shadow-[#061B0E]/15">
+                <Link to="/login" className="bg-[#061B0E] text-white px-8 py-4 text-sm font-semibold uppercase tracking-widest hover:bg-[#0a2012] transition-all active:scale-95 shadow-xl shadow-[#061B0E]/15">
                   Mulai Analisis Sekarang
-                </button>
+                </Link>
+                
                 <button className="border border-[#c3c8c1] bg-transparent text-[#061B0E] px-8 py-4 text-sm font-semibold uppercase tracking-widest hover:bg-[#f5f4ef] transition-all active:scale-95">
                   Pelajari Metodologi
                 </button>
