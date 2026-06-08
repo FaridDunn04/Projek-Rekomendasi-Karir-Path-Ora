@@ -5,8 +5,10 @@ import type { AiAnalysisResult } from "./ai-response.schema.js";
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-const MOCK_PAYLOAD = {
-  cv_id: "mock-cv-id",
+const MOCK_AI_DELAY_MS = 4_000;
+
+const MOCK_PAYLOAD_1 = {
+  cv_id: "mock-cv-id-001",
   analyzed_at: new Date().toISOString(),
   predicted_category: "INFORMATION-TECHNOLOGY",
   confidence: 0.832,
@@ -88,260 +90,411 @@ const MOCK_PAYLOAD = {
     "Visualization, respectively.",
 };
 
-const MOCK_PAYLOAD_1 = {
-  cv_id: "mock-cv-id-001",
-  analyzed_at: new Date().toISOString(),
-  predicted_category: "HEALTHCARE",
-  confidence: 0.791,
-  top_5_predictions: [
-    { category: "HEALTHCARE", confidence: 0.791 },
-    { category: "SCIENCE", confidence: 0.082 },
-    { category: "EDUCATION", confidence: 0.058 },
-    { category: "SOCIAL-WORK", confidence: 0.043 },
-    { category: "BUSINESS-DEVELOPMENT", confidence: 0.026 },
-  ],
-  extracted_skills: [
-    {
-      category: "HEALTHCARE",
-      matched_skills: [
-        { skill: "Patient Care", similarity: 0.94 },
-        { skill: "Medical Terminology", similarity: 0.91 },
-        { skill: "Clinical Assessment", similarity: 0.88 },
-      ],
-      missing_skills: ["Surgery Assistance", "Radiology", "Pharmacology"],
-    },
-    {
-      category: "SCIENCE",
-      matched_skills: [
-        { skill: "Laboratory Research", similarity: 0.76 },
-        { skill: "Data Analysis", similarity: 0.72 },
-      ],
-      missing_skills: ["Molecular Biology", "Genetics", "Biochemistry"],
-    },
-    {
-      category: "EDUCATION",
-      matched_skills: [
-        { skill: "Public Health Awareness", similarity: 0.69 },
-        { skill: "Community Outreach", similarity: 0.63 },
-      ],
-      missing_skills: [
-        "Curriculum Development",
-        "E-Learning",
-        "Teaching Methods",
-      ],
-    },
-    {
-      category: "SOCIAL-WORK",
-      matched_skills: [
-        { skill: "Counseling", similarity: 0.58 },
-        { skill: "Case Management", similarity: 0.54 },
-      ],
-      missing_skills: ["Crisis Intervention", "Social Policy", "Advocacy"],
-    },
-    {
-      category: "BUSINESS-DEVELOPMENT",
-      matched_skills: [
-        { skill: "Healthcare Administration", similarity: 0.47 },
-        { skill: "Budget Planning", similarity: 0.41 },
-      ],
-      missing_skills: [
-        "Sales Strategy",
-        "Market Research",
-        "Business Planning",
-      ],
-    },
-  ],
-  career_recommendations: [
-    { category: "HEALTHCARE", match_score: 0.791 },
-    { category: "SCIENCE", match_score: 0.082 },
-    { category: "EDUCATION", match_score: 0.058 },
-    { category: "SOCIAL-WORK", match_score: 0.043 },
-    { category: "BUSINESS-DEVELOPMENT", match_score: 0.026 },
-  ],
-  description_career_recommendations:
-    "Based on the predicted category and extracted skills, the most suitable career paths " +
-    "include roles such as Registered Nurse, Clinical Coordinator, and Healthcare Administrator. " +
-    "These roles leverage strong competencies in Patient Care, Medical Terminology, and Clinical " +
-    "Assessment, which are highly sought after in the Healthcare sector. Secondary opportunities " +
-    "exist in scientific research and public health education for candidates with laboratory and " +
-    "community outreach experience.",
-};
-
 const MOCK_PAYLOAD_2 = {
-  cv_id: "mock-cv-id-002",
+  cv_id: "11152490",
   analyzed_at: new Date().toISOString(),
-  predicted_category: "DESIGN",
-  confidence: 0.714,
+  predicted_category: "EDUCATION-ADMINISTRATION",
+  confidence: 0.874,
   top_5_predictions: [
-    { category: "DESIGN", confidence: 0.714 },
-    { category: "DIGITAL-MEDIA", confidence: 0.121 },
-    { category: "MARKETING", confidence: 0.079 },
-    { category: "ARCHITECTURE", confidence: 0.053 },
-    { category: "ARTS", confidence: 0.033 },
+    {
+      category: "EDUCATION-ADMINISTRATION",
+      confidence: 0.874,
+    },
+    {
+      category: "HUMAN-RESOURCES",
+      confidence: 0.071,
+    },
+    {
+      category: "BUSINESS-OPERATIONS",
+      confidence: 0.048,
+    },
+    {
+      category: "FINANCE-FRAUD-ANALYSIS",
+      confidence: 0.039,
+    },
+    {
+      category: "INFORMATION-TECHNOLOGY",
+      confidence: 0.031,
+    },
   ],
   extracted_skills: [
     {
-      category: "DESIGN",
+      category: "EDUCATION-ADMINISTRATION",
       matched_skills: [
-        { skill: "Adobe Illustrator", similarity: 0.96 },
-        { skill: "Figma", similarity: 0.93 },
-        { skill: "UI/UX Design", similarity: 0.9 },
-      ],
-      missing_skills: ["Motion Graphics", "3D Modeling", "Design Systems"],
-    },
-    {
-      category: "DIGITAL-MEDIA",
-      matched_skills: [
-        { skill: "Adobe Photoshop", similarity: 0.87 },
-        { skill: "Content Creation", similarity: 0.81 },
+        {
+          skill: "Educational Leadership",
+          similarity: 0.95,
+        },
+        {
+          skill: "Instructional Strategies",
+          similarity: 0.92,
+        },
+        {
+          skill: "School Improvement Planning",
+          similarity: 0.91,
+        },
+        {
+          skill: "Staff Training",
+          similarity: 0.89,
+        },
+        {
+          skill: "Policy Development",
+          similarity: 0.87,
+        },
       ],
       missing_skills: [
-        "Video Editing",
-        "Podcast Production",
-        "SEO Optimization",
+        "Learning Management Systems",
+        "Curriculum Technology Integration",
+        "Educational Data Analytics",
       ],
     },
     {
-      category: "MARKETING",
+      category: "HUMAN-RESOURCES",
       matched_skills: [
-        { skill: "Brand Identity", similarity: 0.74 },
-        { skill: "Social Media Design", similarity: 0.69 },
+        {
+          skill: "Employee Management",
+          similarity: 0.88,
+        },
+        {
+          skill: "Recruiting and Selection",
+          similarity: 0.84,
+        },
+        {
+          skill: "Performance Evaluation",
+          similarity: 0.83,
+        },
+        {
+          skill: "Employee Relations",
+          similarity: 0.81,
+        },
       ],
       missing_skills: [
-        "Digital Advertising",
-        "Campaign Management",
-        "Analytics",
+        "HRIS Management",
+        "Compensation Analytics",
+        "Talent Acquisition Strategy",
       ],
     },
     {
-      category: "ARCHITECTURE",
+      category: "BUSINESS-OPERATIONS",
       matched_skills: [
-        { skill: "Spatial Design", similarity: 0.61 },
-        { skill: "Wireframing", similarity: 0.57 },
+        {
+          skill: "Budget Management",
+          similarity: 0.82,
+        },
+        {
+          skill: "Process Evaluation",
+          similarity: 0.8,
+        },
+        {
+          skill: "Program Development",
+          similarity: 0.79,
+        },
+        {
+          skill: "Grant Management",
+          similarity: 0.77,
+        },
       ],
       missing_skills: [
-        "AutoCAD",
-        "Structural Engineering",
-        "Construction Planning",
+        "Operations Analytics",
+        "Vendor Management",
+        "Enterprise Resource Planning",
       ],
     },
     {
-      category: "ARTS",
+      category: "FINANCE-FRAUD-ANALYSIS",
       matched_skills: [
-        { skill: "Typography", similarity: 0.52 },
-        { skill: "Color Theory", similarity: 0.48 },
+        {
+          skill: "Fraud Analysis",
+          similarity: 0.76,
+        },
+        {
+          skill: "Risk Assessment",
+          similarity: 0.72,
+        },
+        {
+          skill: "Financial Data Confidentiality",
+          similarity: 0.69,
+        },
+        {
+          skill: "Suspicious Activity Reporting",
+          similarity: 0.67,
+        },
       ],
-      missing_skills: ["Fine Arts", "Sculpture", "Art History"],
+      missing_skills: [
+        "SQL for Fraud Detection",
+        "AML Compliance",
+        "Statistical Fraud Modeling",
+      ],
+    },
+    {
+      category: "INFORMATION-TECHNOLOGY",
+      matched_skills: [
+        {
+          skill: "Website Development Tools",
+          similarity: 0.69,
+        },
+        {
+          skill: "Web Support",
+          similarity: 0.67,
+        },
+        {
+          skill: "Microsoft Office Suite",
+          similarity: 0.65,
+        },
+        {
+          skill: "Dreamweaver",
+          similarity: 0.61,
+        },
+      ],
+      missing_skills: [
+        "Modern Web Development",
+        "Database Management",
+        "Cloud Platforms",
+      ],
     },
   ],
   career_recommendations: [
-    { category: "DESIGN", match_score: 0.714 },
-    { category: "DIGITAL-MEDIA", match_score: 0.121 },
-    { category: "MARKETING", match_score: 0.079 },
-    { category: "ARCHITECTURE", match_score: 0.053 },
-    { category: "ARTS", match_score: 0.033 },
+    {
+      category: "EDUCATION-ADMINISTRATION",
+      match_score: 0.874,
+    },
+    {
+      category: "HUMAN-RESOURCES",
+      match_score: 0.071,
+    },
+    {
+      category: "BUSINESS-OPERATIONS",
+      match_score: 0.048,
+    },
+    {
+      category: "FINANCE-FRAUD-ANALYSIS",
+      match_score: 0.039,
+    },
+    {
+      category: "INFORMATION-TECHNOLOGY",
+      match_score: 0.031,
+    },
   ],
   description_career_recommendations:
-    "Based on the predicted category and extracted skills, the most suitable career paths " +
-    "include roles such as UI/UX Designer, Product Designer, and Brand Identity Specialist. " +
-    "These roles leverage strong proficiency in Adobe Illustrator, Figma, and UI/UX Design, " +
-    "which are core competencies in the Design sector. Additional opportunities exist in " +
-    "Digital Media and Marketing for candidates with content creation and brand identity skills, " +
-    "particularly in roles bridging visual design with digital communication.",
+    "Based on the predicted category and extracted skills, the most suitable career paths include roles such as Deputy Principal, School Principal, Director of School Improvement, Education Program Manager, and Instructional Leadership Coordinator. The candidate has strong experience in educational leadership, school operations, staff training, performance evaluation, policy compliance, budget monitoring, and student achievement improvement. Additional career opportunities are also relevant in Human Resources and Business Operations because the CV shows experience in employee management, recruiting, training, process evaluation, grant administration, and organizational leadership. The candidate also has secondary strengths in fraud analysis and web support, but these areas are less dominant compared to the education administration background.",
 };
 
 const MOCK_PAYLOAD_3 = {
-  cv_id: "mock-cv-id-003",
-  analyzed_at: new Date().toISOString(),
-  predicted_category: "LEGAL",
-  confidence: 0.868,
+  cv_id: "11152490",
+  analyzed_at: "2026-06-08T00:00:00.000Z",
+  predicted_category: "EDUCATION-ADMINISTRATION",
+  confidence: 0.874,
   top_5_predictions: [
-    { category: "LEGAL", confidence: 0.868 },
-    { category: "BUSINESS-DEVELOPMENT", confidence: 0.064 },
-    { category: "GOVERNMENT", confidence: 0.038 },
-    { category: "FINANCE", confidence: 0.019 },
-    { category: "EDUCATION", confidence: 0.011 },
-    // { category: "EDUCATION", confidence: 0.011 },
+    {
+      category: "EDUCATION-ADMINISTRATION",
+      confidence: 0.874,
+    },
+    {
+      category: "HUMAN-RESOURCES",
+      confidence: 0.071,
+    },
+    {
+      category: "BUSINESS-OPERATIONS",
+      confidence: 0.048,
+    },
+    {
+      category: "FINANCE-FRAUD-ANALYSIS",
+      confidence: 0.039,
+    },
+    {
+      category: "INFORMATION-TECHNOLOGY",
+      confidence: 0.031,
+    },
   ],
   extracted_skills: [
     {
-      category: "LEGAL",
+      category: "EDUCATION-ADMINISTRATION",
       matched_skills: [
-        { skill: "Legal Research", similarity: 0.97 },
-        { skill: "Contract Drafting", similarity: 0.95 },
-        { skill: "Litigation Support", similarity: 0.91 },
-      ],
-      missing_skills: ["International Law", "Intellectual Property", "Tax Law"],
-    },
-    {
-      category: "BUSINESS-DEVELOPMENT",
-      matched_skills: [
-        { skill: "Negotiation", similarity: 0.82 },
-        { skill: "Compliance Management", similarity: 0.78 },
+        {
+          skill: "Educational Leadership",
+          similarity: 0.95,
+        },
+        {
+          skill: "Instructional Strategies",
+          similarity: 0.92,
+        },
+        {
+          skill: "School Improvement Planning",
+          similarity: 0.91,
+        },
+        {
+          skill: "Staff Training",
+          similarity: 0.89,
+        },
+        {
+          skill: "Policy Development",
+          similarity: 0.87,
+        },
       ],
       missing_skills: [
-        "Sales Strategy",
-        "Partnership Development",
-        "Market Expansion",
-      ],
-    },
-    {
-      category: "GOVERNMENT",
-      matched_skills: [
-        { skill: "Regulatory Affairs", similarity: 0.71 },
-        { skill: "Policy Analysis", similarity: 0.66 },
-      ],
-      missing_skills: [
-        "Public Administration",
-        "Legislative Drafting",
-        "Government Relations",
+        "Learning Management Systems",
+        "Curriculum Technology Integration",
+        "Educational Data Analytics",
       ],
     },
     {
-      category: "FINANCE",
+      category: "HUMAN-RESOURCES",
       matched_skills: [
-        { skill: "Corporate Governance", similarity: 0.59 },
-        { skill: "Due Diligence", similarity: 0.55 },
+        {
+          skill: "Employee Management",
+          similarity: 0.88,
+        },
+        {
+          skill: "Recruiting and Selection",
+          similarity: 0.84,
+        },
+        {
+          skill: "Performance Evaluation",
+          similarity: 0.83,
+        },
+        {
+          skill: "Employee Relations",
+          similarity: 0.81,
+        },
       ],
       missing_skills: [
-        "Financial Modeling",
-        "Investment Analysis",
-        "Risk Assessment",
+        "HRIS Management",
+        "Compensation Analytics",
+        "Talent Acquisition Strategy",
       ],
     },
     {
-      category: "EDUCATION",
+      category: "BUSINESS-OPERATIONS",
       matched_skills: [
-        { skill: "Legal Writing", similarity: 0.49 },
-        { skill: "Moot Court Training", similarity: 0.43 },
+        {
+          skill: "Budget Management",
+          similarity: 0.82,
+        },
+        {
+          skill: "Process Evaluation",
+          similarity: 0.8,
+        },
+        {
+          skill: "Program Development",
+          similarity: 0.79,
+        },
+        {
+          skill: "Grant Management",
+          similarity: 0.77,
+        },
       ],
       missing_skills: [
-        "Curriculum Design",
-        "Academic Research",
-        "Teaching Methods",
+        "Operations Analytics",
+        "Vendor Management",
+        "Enterprise Resource Planning",
+      ],
+    },
+    {
+      category: "FINANCE-FRAUD-ANALYSIS",
+      matched_skills: [
+        {
+          skill: "Fraud Analysis",
+          similarity: 0.76,
+        },
+        {
+          skill: "Risk Assessment",
+          similarity: 0.72,
+        },
+        {
+          skill: "Financial Data Confidentiality",
+          similarity: 0.69,
+        },
+        {
+          skill: "Suspicious Activity Reporting",
+          similarity: 0.67,
+        },
+      ],
+      missing_skills: [
+        "SQL for Fraud Detection",
+        "AML Compliance",
+        "Statistical Fraud Modeling",
+      ],
+    },
+    {
+      category: "INFORMATION-TECHNOLOGY",
+      matched_skills: [
+        {
+          skill: "Website Development Tools",
+          similarity: 0.69,
+        },
+        {
+          skill: "Web Support",
+          similarity: 0.67,
+        },
+        {
+          skill: "Microsoft Office Suite",
+          similarity: 0.65,
+        },
+        {
+          skill: "Dreamweaver",
+          similarity: 0.61,
+        },
+      ],
+      missing_skills: [
+        "Modern Web Development",
+        "Database Management",
+        "Cloud Platforms",
       ],
     },
   ],
   career_recommendations: [
-    { category: "LEGAL", match_score: 0.868 },
-    { category: "BUSINESS-DEVELOPMENT", match_score: 0.064 },
-    { category: "GOVERNMENT", match_score: 0.038 },
-    { category: "FINANCE", match_score: 0.019 },
-    { category: "EDUCATION", match_score: 0.011 },
+    {
+      category: "EDUCATION-ADMINISTRATION",
+      match_score: 0.874,
+    },
+    {
+      category: "HUMAN-RESOURCES",
+      match_score: 0.071,
+    },
+    {
+      category: "BUSINESS-OPERATIONS",
+      match_score: 0.048,
+    },
+    {
+      category: "FINANCE-FRAUD-ANALYSIS",
+      match_score: 0.039,
+    },
+    {
+      category: "INFORMATION-TECHNOLOGY",
+      match_score: 0.031,
+    },
   ],
   description_career_recommendations:
-    "Based on the predicted category and extracted skills, the most suitable career paths " +
-    "include roles such as Corporate Lawyer, Legal Consultant, and Compliance Officer. " +
-    "These roles leverage exceptional strengths in Legal Research, Contract Drafting, and " +
-    "Litigation Support, which form the backbone of the Legal sector. Supporting opportunities " +
-    "exist in Business Development and Government for candidates whose negotiation, regulatory " +
-    "affairs, and policy analysis skills complement a strong legal foundation.",
+    "Based on the predicted category and extracted skills, the most suitable career paths include roles such as Deputy Principal, School Principal, Director of School Improvement, Education Program Manager, and Instructional Leadership Coordinator. The candidate has strong experience in educational leadership, school operations, staff training, performance evaluation, policy compliance, budget monitoring, and student achievement improvement. Additional career opportunities are also relevant in Human Resources and Business Operations because the CV shows experience in employee management, recruiting, training, process evaluation, grant administration, and organizational leadership. The candidate also has secondary strengths in fraud analysis and web support, but these areas are less dominant compared to the education administration background.",
+};
+
+const MOCK_PAYLOAD_SEQUENCE = [MOCK_PAYLOAD_1, MOCK_PAYLOAD_2, MOCK_PAYLOAD_3];
+
+type MockAiGatewayOptions = {
+  delayMs?: number;
 };
 
 export class MockAiGateway implements AiGatewayAdapter {
+  private nextPayloadIndex = 0;
+  private readonly delayMs: number;
+
+  constructor(options: MockAiGatewayOptions = {}) {
+    this.delayMs = options.delayMs ?? MOCK_AI_DELAY_MS;
+  }
+
   async analyze(_source: CvSource, cvId: string): Promise<AiAnalysisResult> {
-    await sleep(200);
-    const payload = { ...MOCK_PAYLOAD, cv_id: cvId };
+    await sleep(this.delayMs);
+
+    const template = MOCK_PAYLOAD_SEQUENCE[this.nextPayloadIndex];
+    this.nextPayloadIndex =
+      (this.nextPayloadIndex + 1) % MOCK_PAYLOAD_SEQUENCE.length;
+
+    const payload = {
+      ...JSON.parse(JSON.stringify(template)),
+      cv_id: cvId,
+      analyzed_at: new Date().toISOString(),
+    };
+
     return validateAiResponse(payload);
   }
 }

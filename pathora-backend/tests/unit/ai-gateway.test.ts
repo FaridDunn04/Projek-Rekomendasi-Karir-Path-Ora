@@ -62,7 +62,7 @@ describe("HttpAiGateway", () => {
 describe("MockAiGateway", () => {
   let gateway: MockAiGateway;
   beforeEach(() => {
-    gateway = new MockAiGateway();
+    gateway = new MockAiGateway({ delayMs: 0 });
   });
   it("mengembalikan payload yang lolos AiResponseSchema (FR-015)", async () => {
     const result = await gateway.analyze(textSource, "cv-test");
@@ -88,5 +88,17 @@ describe("MockAiGateway", () => {
       (r) => r.match_score < 0.3,
     );
     expect(hasLowMatchScore).toBe(true);
+  });
+  it("mengembalikan payload mock secara berurutan untuk setiap analisis", async () => {
+    const first = await gateway.analyze(textSource, "cv-sequence-1");
+    const second = await gateway.analyze(textSource, "cv-sequence-2");
+    const third = await gateway.analyze(textSource, "cv-sequence-3");
+
+    expect(first.cv_id).toBe("cv-sequence-1");
+    expect(first.predicted_category).toBe("HEALTHCARE");
+    expect(second.cv_id).toBe("cv-sequence-2");
+    expect(second.predicted_category).toBe("DESIGN");
+    expect(third.cv_id).toBe("cv-sequence-3");
+    expect(third.predicted_category).toBe("LEGAL");
   });
 });
