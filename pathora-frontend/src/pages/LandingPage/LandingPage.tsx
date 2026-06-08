@@ -50,18 +50,7 @@ export default function LandingPage() {
             >
               Analysis
             </a>
-            <a
-              href="#premium"
-              className="text-sm uppercase tracking-widest text-[#737973] font-medium hover:text-[#061B0E] transition-colors"
-            >
-              Premium
-            </a>
-            <a
-              href="#contact"
-              className="text-sm uppercase tracking-widest text-[#737973] font-medium hover:text-[#061B0E] transition-colors"
-            >
-              Contact
-            </a>
+           
           </div>
 
           {/* Call to Action Button */}
